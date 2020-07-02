@@ -41,7 +41,6 @@ if __name__ == '__main__':
 import switchboard as sbp
 
 # To set the frames per second
-# fps = 15
 frame_duration = 1.0 / sbp.fps
 
 images = []

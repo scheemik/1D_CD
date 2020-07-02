@@ -162,7 +162,6 @@ def plot_z_vs_t(z, t_array, T, w_array, BP_array, k, m, omega, z0_dis=None, zf_d
         axes[1].set_xlim([nT,t_array[-1]/T])
     #
     axes[1].set_xlabel(r'$t/T$')
-    # axes[1].set_title(r'$w$ (m/s)')
     axes[1].set_title(r'$\Psi$ (m$^2$/s)')
     param_formated_str = latex_exp(k)+', '+latex_exp(m)+', '+latex_exp(omega)
     fig.suptitle(r'%s, $(k,m,\omega)$=(%s)' %(title_str, param_formated_str))
@@ -209,8 +208,8 @@ def plot_k_vs_t(ks, t_array, T, real_array, imag_array, k, m, omega, c_map='RdBu
 
 # Make a plot for one time slice
 def plot_task(ax, time_i, task_j, z_ax, dsets):
-    # plot line of w vs. z
-    im = ax.plot(dsets[task_j][time_i][1], z_ax, color=my_clrs['w'])
+    # plot line of psi vs. z
+    im = ax.plot(dsets[task_j][time_i][1], z_ax, color=my_clrs['b'])
     # Find max of absolute value for data to make symmetric around zero
     xmax = max(abs(max(dsets[task_j][time_i][1].flatten())), abs(min(dsets[task_j][time_i][1].flatten())))
     if xmax==0.0:

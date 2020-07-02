@@ -44,12 +44,12 @@ if not os.path.exists(output_path):
         os.makedirs(output_path)
 
 # Labels
-hori_label = r'$\Psi$ (m$^2$/s)' #r'$w$ (m/s)'
+hori_label = r'$\Psi$ (m$^2$/s)' 
 vert_label = r'$z$ (m)'
 
 # Parameters
 dpi = sbp.dpi
-tasks = ['psi'] #['w'] # usually 'b', 'p', 'u', or 'w'
+tasks = ['psi']
 rows = 1
 cols = 2
 n_x_ticks = 3

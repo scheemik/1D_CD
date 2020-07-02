@@ -1,12 +1,4 @@
 """
-# 1D Bousinessq equations:
-#
-# dz(w) + iku = 0
-# dt(b) - ka(dzz-k^2)b = -N^2*w -(wdz + iku)b
-# dt(u) - nu(dzz-k^2)u + ikp = -(wdz + iku)u
-# dt(w) - nu(dzz-k^2)w + dz(p) - b = -(wdz + iku)w
-#
-# where k is the horizontal wavenumber
 
 1D Bousinessq streamfunction equation:
 
@@ -75,10 +67,6 @@ z           = sbp.z
 ks          = sbp.ks
 
 # Define problem
-# problem = de.IVP(domain, variables=['b', 'p', 'u', 'w'])
-# problem.parameters['NU'] = nu
-# problem.parameters['KA'] = kappa
-# problem.parameters['N0'] = N_0
 problem = de.IVP(domain, variables=['psi', 'foo', 'psi_masked'])
 problem.parameters['NU'] = nu
 problem.parameters['f0'] = f_0
@@ -88,23 +76,10 @@ problem.parameters['N0'] = N_0
 # Forcing from the boundary
 
 # Boundary forcing parameters
-# A = sbp.A
 problem.parameters['A']     = sbp.A
 problem.parameters['k']     = k
 problem.parameters['m']     = m
 problem.parameters['omega'] = omega
-
-# # Polarization relation from boundary forcing file
-# PolRel = {'u': -A*(g*omega*m)/(N_0**2*k),
-#           'w':  A*(g*omega)/(N_0**2),
-#           'b':  A*g}
-#         # 'p': -A*(g*m)/(k**2+m**2)}
-# # Creating forcing amplitudes
-# for fld in ['u', 'w', 'b']:#, 'p']:
-#     BF = domain.new_field()
-#     BF['g'] = PolRel[fld]
-#     problem.parameters['BF' + fld] = BF  # pass function in as a parameter.
-#     del BF
 
 # Temporal ramp for boundary forcing
 if sbp.temporal_ramp:
@@ -114,10 +89,6 @@ if sbp.temporal_ramp:
 else:
     problem.substitutions['ramp']   = "1"
 # # Substitutions for boundary forcing (see C-R & B eq 13.7)
-# problem.substitutions['fu'] = "BFu*sin(m*z - omega*t)*ramp"
-# problem.substitutions['fw'] = "BFw*sin(m*z - omega*t)*ramp"
-# problem.substitutions['fb'] = "BFb*cos(m*z - omega*t)*ramp"
-# # problem.substitutions['fp'] = "BFp*sin(m*z - omega*t)*ramp"
 problem.substitutions['f_psi'] = "A*sin(m*z - omega*t)*ramp"
 
 ###############################################################################
@@ -142,11 +113,6 @@ problem.parameters['win_bf'] = win_bf
 problem.parameters['tau_bf'] = sbp.tau_bf # [s] time constant for sponge layer
 
 # Creating forcing terms
-# for fld in ['u', 'w', 'b']:#, 'p']:
-#     # terms will be = win_bf * (f(psi) - psi)
-#     problem.substitutions['F_term_' + fld] = "win_bf * (f"+fld+" - "+fld+")/tau_bf"
-# problem.substitutions['bf_term'] = " win_bf * (a*sin(-m*z - omega*t) - w)*ramp"
-#   Terms will be = win_bf * (f(psi) - psi)
 problem.substitutions['F_term_psi'] = "win_bf * (f_psi - psi)/tau_bf"
 
 ###############################################################################
@@ -157,9 +123,6 @@ problem.parameters['win_sp'] = win_sp
 problem.parameters['tau_sp'] = sbp.tau_sp # [s] time constant for sponge layer
 
 # Creating sponge terms
-# for fld in ['u', 'w', 'b']:#, 'p']:
-#     problem.substitutions['S_term_' + fld] = "win_sp * "+fld+" / tau_sp"
-# problem.substitutions['sp_term'] = "-win_sp * w / tau"
 problem.substitutions['S_term_psi'] = "win_sp * psi / tau_sp"
 
 ###############################################################################
@@ -169,20 +132,6 @@ if sbp.plot_windows:
 
 ###############################################################################
 # Define equations
-#   Non-linear terms and NCC need to be on RHS
-#   BP, F_terms, S_terms are NCC, Advection is nonlinear
-
-# problem.add_equation("dz(w) - k*u = 0")
-# problem.add_equation("dt(b) - KA*(dz(dz(b)) - (k**2)*b) " \
-#                      " = -((N0*BP)**2)*w - (w*dz(b) + k*u*b) " \
-#                      " + F_term_b - S_term_b ")
-# problem.add_equation("dt(u) - NU*(dz(dz(u)) - (k**2)*u) + k*p " \
-#                      " = - (w*dz(u) + k*u*u) " \
-#                      " + F_term_u - S_term_u ")
-# problem.add_equation("dt(w) - NU*(dz(dz(w)) - (k**2)*w) + dz(p) - b " \
-#                      " = - (w*dz(w) + k*u*w) " \
-#                      " + F_term_w - S_term_w ")
-
 problem.add_equation("dt( dz(dz(foo)) - (k**2)*foo ) + f0*(dz(dz(psi))) " \
                      " - NU*(dz(dz(dz(dz(psi)))) + (k**4)*psi) " \
                      " = (k**2)*((N0*BP)**2)*psi " \
@@ -204,15 +153,9 @@ solver.stop_iteration = sbp.stop_iteration
 ###############################################################################
 
 # Initial conditions
-# b = solver.state['b']
-# u = solver.state['u']
-# w = solver.state['w']
 psi = solver.state['psi']
 psi_masked = solver.state['psi_masked']
 
-# b['g'] = 0.0
-# u['g'] = 0.0
-# w['g'] = 0.0
 psi['g'] = 0.0
 psi_masked['g'] = 0.0
 
@@ -255,10 +198,6 @@ store_this.set_scales(1)
 psi_gs = [np.copy(store_this['g']).real] # Plotting functions require float64, not complex128
 psi_cr = [np.copy(store_this['c']).real]
 psi_ci = [np.copy(store_this['c']).imag]
-# psi.set_scales(1)
-# psi_gs = [np.copy(psi['g']).real] # Plotting functions require float64, not complex128
-# psi_cr = [np.copy(psi['c']).real]
-# psi_ci = [np.copy(psi['c']).imag]
 t_list = [solver.sim_time]
 ###############################################################################
 # Main loop
@@ -273,17 +212,10 @@ try:
         #     dt = CFL.compute_dt()
         solver.step(dt)
         if solver.iteration % 1 == 0:
-            # w.set_scales(1)
-            # w_list.append(np.copy(w['g']))
-            # t_list.append(solver.sim_time)
             store_this.set_scales(1)
             psi_gs.append(np.copy(store_this['g']).real)
             psi_cr.append(np.copy(store_this['c']).real)
             psi_ci.append(np.copy(store_this['c']).imag)
-            # si.set_scales(1)
-            # psi_gs.append(np.copy(psi['g']).real)
-            # psi_cr.append(np.copy(psi['c']).real)
-            # psi_ci.append(np.copy(psi['c']).imag)
             t_list.append(solver.sim_time)
         if solver.iteration % logger_cadence == 0:
             logger.info(iteration_str %(solver.iteration, solver.sim_time/time_factor, dt/time_factor))
@@ -302,8 +234,6 @@ finally:
 
 
 # Create space-time plot
-# w_array = np.transpose(np.array(w_list))
-# t_array = np.array(t_list)
 psi_g_array = np.transpose(np.array(psi_gs))
 psi_c_reals = np.transpose(np.array(psi_cr))
 psi_c_imags = np.transpose(np.array(psi_ci))
