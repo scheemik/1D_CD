@@ -73,10 +73,10 @@ advection_term          = False
 buoyancy_term           = True
 diffusivity_term        = True
 rotation_term           = False
-
 # Diffusion / dissipation of reflections
 use_sponge              = False
 use_rayleigh_friction   = False
+boundary_forcing_region = False  # If False, waves will be forced over entire domain
 
 # Measurements
 take_ef_comp  = False # Energy flux terms recorded separately
@@ -120,7 +120,11 @@ step_th = 1.0/m
 
 # Boundary forcing window 2
 c_bf    = zf - buff_bf          # [m] location of center of boundary forcing window
-win_bf_array = a_bf*np.exp(-4*np.log(2)*((z - c_bf)/b_bf)**2)
+if boundary_forcing_region == True:
+    win_bf_array = a_bf*np.exp(-4*np.log(2)*((z - c_bf)/b_bf)**2)
+else:
+    win_bf_array = z*0.0 + 1.0  # Forcing over entire domain
+    use_sponge = False          # Having sp layer and full domain forcing causes problems
 
 # Sponge layer window 2
 c_sp    = z0 + buff_sp          # [m] location of center of sponge window window
