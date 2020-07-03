@@ -133,7 +133,7 @@ rotation_term           = False
 
 # Diffusion / dissipation of reflections
 use_sponge              = False
-use_rayleigh_friction   = True
+use_rayleigh_friction   = False
 
 # Measurements
 take_ef_comp  = False # Energy flux terms recorded separately

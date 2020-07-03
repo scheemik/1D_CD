@@ -118,7 +118,10 @@ problem.substitutions['F_term_psi'] = "win_bf * (f_psi - psi)/tau_bf"
 ###############################################################################
 # Sponge window
 win_sp      = domain.new_field(name = 'win_sp')
-win_sp['g'] = sbp.win_sp_array
+if sbp.use_sponge == True:
+    win_sp['g'] = sbp.win_sp_array
+else:
+    win_sp['g'] = sbp.win_sp_array * 0
 problem.parameters['win_sp'] = win_sp
 problem.parameters['tau_sp'] = sbp.tau_sp # [s] time constant for sponge layer
 
@@ -193,7 +196,7 @@ flow_log_message= sbp.flow_log_message
 # w.set_scales(1)
 # w_list = [np.copy(w['g'])]
 # t_list = [solver.sim_time]
-store_this = psi_masked
+store_this = psi #psi_masked
 store_this.set_scales(1)
 psi_gs = [np.copy(store_this['g']).real] # Plotting functions require float64, not complex128
 psi_cr = [np.copy(store_this['c']).real]
