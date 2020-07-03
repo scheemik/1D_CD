@@ -2,8 +2,8 @@
 # A bash script to run the Dedalus python code
 # Takes in optional arguments:
 #	$ sh run.sh -n <name of experiment>
-#				-c <cores>
-#				-v <version: what scripts to run>
+#							-c <cores>
+#							-v <version: what scripts to run>
 
 # Current datetime
 DATETIME=`date +"%Y-%m-%d_%Hh%M"`
