@@ -118,10 +118,7 @@ problem.substitutions['F_term_psi'] = "win_bf * (f_psi - psi)/tau_bf"
 ###############################################################################
 # Sponge window
 win_sp      = domain.new_field(name = 'win_sp')
-if sbp.use_sponge == True:
-    win_sp['g'] = sbp.win_sp_array
-else:
-    win_sp['g'] = sbp.win_sp_array * 0
+win_sp['g'] = sbp.win_sp_array
 problem.parameters['win_sp'] = win_sp
 problem.parameters['tau_sp'] = sbp.tau_sp # [s] time constant for sponge layer
 
@@ -193,9 +190,6 @@ iteration_str   = sbp.iteration_str
 flow_log_message= sbp.flow_log_message
 ###############################################################################
 # Store data for final plot
-# w.set_scales(1)
-# w_list = [np.copy(w['g'])]
-# t_list = [solver.sim_time]
 store_this = psi #psi_masked
 store_this.set_scales(1)
 psi_gs = [np.copy(store_this['g']).real] # Plotting functions require float64, not complex128
@@ -211,8 +205,8 @@ try:
     dt = sbp.dt
     while solver.proceed:
         # Adaptive time stepping controlled from switchboard
-        # if (adapt_dt):
-        #     dt = CFL.compute_dt()
+        if (adapt_dt):
+            dt = CFL.compute_dt()
         solver.step(dt)
         if solver.iteration % 1 == 0:
             store_this.set_scales(1)
@@ -249,6 +243,6 @@ arrays = {'psi_g_array':psi_g_array,
           't_array':t_array,
           'BP_array':BP_array}
 for arr in arrays:
-    file = open('arrays/'+arr, "wb")
+    file = open('arrays/'+arr, "wb")        # "wb" selects the "write binary" mode
     np.save(file, arrays[arr])
     file.close

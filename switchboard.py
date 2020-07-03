@@ -14,7 +14,7 @@ from dedalus import public as de
 # Main parameters, the ones I'll change a lot. Many more below
 
 # Run parameters
-stop_n_periods = 15             # [] oscillation periods
+stop_n_periods = 16             # [] oscillation periods
 
 # Displayed domain parameters
 nz     = 1024                   # [] number of grid points in the z direction
@@ -58,6 +58,32 @@ elif set_case == 3:
 
 T       = 2*np.pi / omega       # [s]           Wave period
 
+###############################################################################
+# ON / OFF Switches
+
+# Determine whether adaptive time stepping is on or off
+adapt_dt                = False
+temporal_ramp           = True
+nT                      = 3.0   # number of oscillation periods long the ramp lasts
+
+# Terms in equations of motion
+viscous_term            = True
+pressure_term           = True
+advection_term          = False
+buoyancy_term           = True
+diffusivity_term        = True
+rotation_term           = False
+
+# Diffusion / dissipation of reflections
+use_sponge              = False
+use_rayleigh_friction   = False
+
+# Measurements
+take_ef_comp  = False # Energy flux terms recorded separately
+# Records snapshots of total vertical energy flux
+take_ef_snaps = False # Total energy flux recorded
+
+###############################################################################
 # Boundary forcing window 1
 a_bf    = 1.0                   # [] amplitude ("height") of the forcing window
 b_bf    = lam_z                 # [m] full width at half max of forcing window
@@ -98,7 +124,10 @@ win_bf_array = a_bf*np.exp(-4*np.log(2)*((z - c_bf)/b_bf)**2)
 
 # Sponge layer window 2
 c_sp    = z0 + buff_sp          # [m] location of center of sponge window window
-win_sp_array = a_sp*np.exp(-4*np.log(2)*((z - c_sp)/b_sp)**2)
+if use_sponge == True:
+    win_sp_array = a_sp*np.exp(-4*np.log(2)*((z - c_sp)/b_sp)**2)
+else:
+    win_sp_array = z * 0.0      # No sponge
 
 ###############################################################################
 # Run parameters
@@ -114,31 +143,6 @@ stop_iteration = np.inf         # [] number of iterations before the simulation 
 # temporal ramp
 temporal_ramp = True
 nT = 3.0
-
-###############################################################################
-# ON / OFF Switches
-
-# Determine whether adaptive time stepping is on or off
-adapt_dt                = False
-temporal_ramp           = True
-nT                      = 3.0   # number of oscillation periods long the ramp lasts
-
-# Terms in equations of motion
-viscous_term            = True
-pressure_term           = True
-advection_term          = True
-buoyancy_term           = True
-diffusivity_term        = True
-rotation_term           = False
-
-# Diffusion / dissipation of reflections
-use_sponge              = False
-use_rayleigh_friction   = False
-
-# Measurements
-take_ef_comp  = False # Energy flux terms recorded separately
-# Records snapshots of total vertical energy flux
-take_ef_snaps = False # Total energy flux recorded
 
 ###############################################################################
 # Physical parameters
