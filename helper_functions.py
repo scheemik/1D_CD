@@ -186,11 +186,11 @@ def plot_A_vs_t(t_array, T, data_array, A, k, m, omega, nT=0.0, title_str='Force
         max_amps[i] = max(data_T[i])
     ramp_array = A*(1/2)*(np.tanh(4*t_array/(nT*T) - 2) + 1)
     #
-    axes[0].plot(t_array, max_amps, color=my_clrs['b'], label=r'$A$')
-    axes[1].plot(t_array, ramp_array, color=my_clrs['b'], label=r'$ramp$')
-    axes[1].axvline(x=nT*T, color=my_clrs['black'], linestyle='--')
+    axes[0].plot(t_array/T, max_amps, color=my_clrs['b'], label=r'$A$')
+    axes[1].plot(t_array/T, ramp_array, color=my_clrs['b'], label=r'$ramp$')
+    axes[1].axvline(x=nT, color=my_clrs['black'], linestyle='--')
     #
-    axes[0].set_xlim(t_array[0], t_array[-1])
+    axes[0].set_xlim(t_array[0]/T, t_array[-1]/T)
     axes[1].set_xlabel(r'$t/T$')
     axes[0].set_ylabel(r'Amplitude')
     axes[1].set_ylabel(r'Ramp')

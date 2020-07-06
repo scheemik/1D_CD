@@ -110,7 +110,7 @@ problem.parameters['DD_mask'] = DD_mask
 win_bf = domain.new_field(name = 'win_bf')
 win_bf['g'] = sbp.win_bf_array
 problem.parameters['win_bf'] = win_bf
-problem.parameters['tau_bf'] = sbp.tau_bf # [s] time constant for sponge layer
+problem.parameters['tau_bf'] = sbp.tau_bf # [s] time constant for boundary forcing
 
 # Creating forcing terms
 problem.substitutions['F_term_psi'] = "win_bf * (f_psi - psi)/tau_bf"
