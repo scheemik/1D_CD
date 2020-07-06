@@ -14,7 +14,7 @@ from dedalus import public as de
 # Main parameters, the ones I'll change a lot. Many more below
 
 # Run parameters
-stop_n_periods = 16             # [] oscillation periods
+stop_n_periods = 40             # [] oscillation periods
 
 # Displayed domain parameters
 nz     = 1024                   # [] number of grid points in the z direction
@@ -63,8 +63,11 @@ T       = 2*np.pi / omega       # [s]           Wave period
 
 # Determine whether adaptive time stepping is on or off
 adapt_dt                = False
-temporal_ramp           = True
+
+# Simulation starting conditions
+temporal_ramp           = True  # If True, slowly ramps the amplitude up to avoid shock wave
 nT                      = 3.0   # number of oscillation periods long the ramp lasts
+steady_state_start      = False  # If True, automatically turns off temporal ramp
 
 # Terms in equations of motion
 viscous_term            = True
@@ -116,7 +119,6 @@ ks = z_basis.wavenumbers
 # Background profile in N_0
 n_steps = 0
 step_th = 1.0/m
-# BP_array = hf.BP_n_steps(n_steps, z, z0_dis, zf_dis, step_th)
 
 # Boundary forcing window 2
 c_bf    = zf - buff_bf          # [m] location of center of boundary forcing window
@@ -144,9 +146,9 @@ sim_time_stop  =T*stop_n_periods# [s] number of simulated seconds until the sim 
 stop_wall_time = 180 * 60.0     # [s] length in minutes * 60 = length in seconds, sim stops if exceeded
 stop_iteration = np.inf         # [] number of iterations before the simulation stops
 
-# temporal ramp
-temporal_ramp = True
-nT = 3.0
+# temporal ramp - probably should remove, already defined above
+# temporal_ramp = True
+# nT = 3.0
 
 ###############################################################################
 # Physical parameters
@@ -237,6 +239,13 @@ vp_snap_dicts = [
 
 # Auxiliary snapshot directory
 aux_snap_dir = 'aux_snapshots'
+
+###############################################################################
+# Initial conditions
+if steady_state_start:
+    psi_initial = A * np.sin(m*z)
+else:
+    psi_initial = 0.0
 
 ###############################################################################
 # CFL parameters
@@ -335,14 +344,6 @@ flow_log_message= 'Max linear criterion = {0:f}'
 # bc7         = eq.bc7_p_bot
 # bc7_cond    = eq.bc7_p_cond
 #
-# ###############################################################################
-# # Background Density Profile
-#
-# # Need to add the path before every import
-# sys.path.insert(0, p_module_dir)
-# import background_profile as bp
-# # The background profile generator function
-# build_bp_array = bp.build_bp_array
 #
 # ###############################################################################
 # # Sponge Layer Profile

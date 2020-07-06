@@ -88,7 +88,7 @@ if sbp.temporal_ramp:
     problem.substitutions['ramp']   = "(1/2)*(tanh(4*t/(nT*T) - 2) + 1)"
 else:
     problem.substitutions['ramp']   = "1"
-# # Substitutions for boundary forcing (see C-R & B eq 13.7)
+# Substitutions for boundary forcing (see C-R & B eq 13.7)
 problem.substitutions['f_psi'] = "A*sin(m*z - omega*t)*ramp"
 
 ###############################################################################
@@ -156,8 +156,9 @@ solver.stop_iteration = sbp.stop_iteration
 psi = solver.state['psi']
 psi_masked = solver.state['psi_masked']
 
-psi['g'] = 0.0
-psi_masked['g'] = 0.0
+psi['g']        = sbp.psi_initial
+psi_masked['g'] = sbp.psi_initial * DD_array
+
 
 ###############################################################################
 # Analysis

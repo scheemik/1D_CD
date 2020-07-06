@@ -17,6 +17,8 @@ DATETIME=`date +"%Y-%m-%d_%Hh%M"`
 #	-> plot first (z vs. t and k vs. t for Psi)
 # VER = 3
 #	-> merge, plot frames, create gif, create mp4, etc
+# VER = 4
+#	-> run the script and plot first (z vs. t and k vs. t for Psi)
 
 while getopts n:c:v: option
 do
@@ -74,8 +76,8 @@ gif_cre_file="create_gif.py"
 
 ###############################################################################
 # run the script
-#	if (VER = 0, 1)
-if [ $VER -eq 0 ] || [ $VER -eq 1 ]
+#	if (VER = 0, 1, 4)
+if [ $VER -eq 0 ] || [ $VER -eq 1 ] || [ $VER -eq 4 ]
 then
 	echo ''
 	echo '--Running script--'
@@ -106,8 +108,8 @@ fi
 
 ###############################################################################
 # plot z vs. t and k vs. t for Psi
-#	if (VER = 0, 1, 2)
-if [ $VER -eq 0 ] || [ $VER -eq 1 ] || [ $VER -eq 2 ]
+#	if (VER = 0, 1, 2, 4)
+if [ $VER -eq 0 ] || [ $VER -eq 1 ] || [ $VER -eq 2 ] || [ $VER -eq 4 ]
 then
 	echo ''
 	echo '--Checking for array files--'
