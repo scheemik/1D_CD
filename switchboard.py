@@ -77,9 +77,9 @@ buoyancy_term           = True
 diffusivity_term        = True
 rotation_term           = False
 # Diffusion / dissipation of reflections
-use_sponge              = False
+use_sponge              = True
 use_rayleigh_friction   = False
-boundary_forcing_region = False  # If False, waves will be forced over entire domain
+boundary_forcing_region = True  # If False, waves will be forced over entire domain
 
 # Measurements
 take_ef_comp  = False # Energy flux terms recorded separately
