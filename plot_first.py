@@ -63,3 +63,6 @@ if sbp.plot_spacetime:
 
 if sbp.plot_wavespace:
     hf.plot_k_vs_t(ks, arrays['t_array'], T, arrays['psi_c_reals'], arrays['psi_c_imags'], k, m, omega, title_str=run_name)
+
+if sbp.plot_amplitude:
+    hf.plot_A_vs_t(arrays['t_array'], T, arrays['psi_g_array'], sbp.A, k, m, omega, nT=sbp.nT, title_str=run_name)

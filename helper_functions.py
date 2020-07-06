@@ -168,6 +168,37 @@ def plot_z_vs_t(z, t_array, T, w_array, BP_array, k, m, omega, z0_dis=None, zf_d
     #plt.show()
     plt.savefig('f_1D_wave.png')
 
+def plot_A_vs_t(t_array, T, data_array, A, k, m, omega, nT=0.0, title_str='Forced 1D Wave'):
+    # Set aspect ratio of overall figure
+    w, h = mpl.figure.figaspect(0.5)
+    # This dictionary makes each subplot have the desired ratios
+    # The length of heights will be nrows and likewise len(widths)=ncols
+    plot_ratios = {'height_ratios': [1,1],
+                   'width_ratios': [1]}
+    # Set ratios by passing dictionary as 'gridspec_kw', and share y axis
+    fig, axes = plt.subplots(figsize=(w,h), nrows=2, ncols=1, gridspec_kw=plot_ratios, sharex=True)
+    #
+    max_amps = t_array * 0.0
+    data_T = np.transpose(data_array)
+    # print('shape of max_amps:',max_amps.shape)
+    # print('shape of data_T:',data_T.shape)
+    for i in range(len(max_amps)):
+        max_amps[i] = max(data_T[i])
+    ramp_array = A*(1/2)*(np.tanh(4*t_array/(nT*T) - 2) + 1)
+    #
+    axes[0].plot(t_array, max_amps, color=my_clrs['b'], label=r'$A$')
+    axes[1].plot(t_array, ramp_array, color=my_clrs['b'], label=r'$ramp$')
+    axes[1].axvline(x=nT*T, color=my_clrs['black'], linestyle='--')
+    #
+    axes[0].set_xlim(t_array[0], t_array[-1])
+    axes[1].set_xlabel(r'$t/T$')
+    axes[0].set_ylabel(r'Amplitude')
+    axes[1].set_ylabel(r'Ramp')
+    param_formated_str = latex_exp(A)+', '+latex_exp(k)+', '+latex_exp(m)+', '+latex_exp(omega)
+    fig.suptitle(r'%s, $(A,k,m,\omega)$=(%s)' %(title_str, param_formated_str))
+    #plt.show()
+    plt.savefig('f_1D_A_vs_t.png')
+
 def plot_k_vs_t(ks, t_array, T, real_array, imag_array, k, m, omega, c_map='RdBu_r', title_str='Forced 1D Wave'):
     # Set aspect ratio of overall figure
     w, h = mpl.figure.figaspect(0.5)
