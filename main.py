@@ -2,7 +2,7 @@
 
 1D Bousinessq streamfunction equation:
 
-dtt(dzz(psi) - k^2 psi) - k^2 N^2 psi + f_0 dzz(psi) - nu(dzz(psi) + k^4 psi)
+dtt(dzz(psi) - k^2 psi) - k^2 N^2 psi + f_0 dzz(psi) - nu[dzz(psi) + k^4 psi]
 
 where k is the horizontal wavenumber, N is stratification,
     f_0 is the Coriolis parameter, and nu is the viscosity
