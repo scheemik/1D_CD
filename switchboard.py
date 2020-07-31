@@ -65,7 +65,7 @@ T       = 2*np.pi / omega       # [s]           Wave period
 adapt_dt                = False
 
 # Simulation starting conditions
-temporal_ramp           = True  # If True, slowly ramps the amplitude up to avoid shock wave
+temporal_ramp           = False  # If True, slowly ramps the amplitude up to avoid shock wave
 nT                      = 3.0   # number of oscillation periods long the ramp lasts
 steady_state_start      = False  # If True, automatically turns off temporal ramp
 
@@ -97,7 +97,7 @@ tau_bf  = 1.0e0                 # [s] time constant for boundary forcing
 a_sp    = 1.0                   # [] amplitude ("height") of the sponge window
 b_sp    = lam_z                 # [m] full width at half max of sponge window
 buff_sp = 1.5*b_sp              # [m] distance from bottom boundary to center of sponge
-tau_sp  = 1.0e-2                # [s] time constant for sponge layer
+tau_sp  = 5.0e-2                # [s] time constant for sponge layer
 
 ###############################################################################
 ###############################################################################
