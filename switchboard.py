@@ -95,9 +95,9 @@ tau_bf  = 1.0e0                 # [s] time constant for boundary forcing
 
 # Sponge layer window 1
 a_sp    = 1.0                   # [] amplitude ("height") of the sponge window
-b_sp    = lam_z                 # [m] full width at half max of sponge window
+b_sp    = 2*lam_z                 # [m] full width at half max of sponge window
 buff_sp = 1.5*b_sp              # [m] distance from bottom boundary to center of sponge
-tau_sp  = 5.0e-2                # [s] time constant for sponge layer
+tau_sp  = 1.67#5.0e-3                # [s] time constant for sponge layer
 
 ###############################################################################
 ###############################################################################
@@ -129,7 +129,7 @@ else:
     use_sponge = False          # Having sp layer and full domain forcing causes problems
 
 # Sponge layer window 2
-c_sp    = z0 + buff_sp          # [m] location of center of sponge window window
+c_sp    = z0_dis #z0 + buff_sp          # [m] location of center of sponge window window
 if use_sponge == True:
     win_sp_array = a_sp*np.exp(-4*np.log(2)*((z - c_sp)/b_sp)**2)
 else:

@@ -54,7 +54,8 @@ k_total     = sbp.k_total       # [m^-1]        Total wavenumber
 theta       = sbp.theta         # [rad]         Propagation angle from vertical
 omega       = sbp.omega         # [rad s^-1]    Wave frequency
 T           = sbp.T             # [s]           Wave period
-# print('phase speed is',omega/m,'m/s')
+print('phase speed is',omega/m,'m/s')
+print('group speed is',omega*m/(k**2 + m**2),'m/s') # cushman-roisin and beckers 13.10, pg 400
 
 ###############################################################################
 # Bases and domain
