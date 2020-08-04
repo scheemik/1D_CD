@@ -97,7 +97,7 @@ tau_bf  = 1.0e0                 # [s] time constant for boundary forcing
 a_sp    = 1.0                   # [] amplitude ("height") of the sponge window
 b_sp    = 2*lam_z                 # [m] full width at half max of sponge window
 buff_sp = 1.5*b_sp              # [m] distance from bottom boundary to center of sponge
-tau_sp  = 1.67#5.0e-3                # [s] time constant for sponge layer
+tau_sp  = 2.0e-3                # [s] time constant for sponge layer
 
 ###############################################################################
 ###############################################################################
