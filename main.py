@@ -90,7 +90,7 @@ if sbp.temporal_ramp:
 else:
     problem.substitutions['ramp']   = "1"
 # Substitutions for boundary forcing (see C-R & B eq 13.7)
-problem.substitutions['f_psi'] = "A*sin(m*z - omega*t)*ramp"
+problem.substitutions['f_psi'] = "(A*sin(m*z - omega*t))*ramp"
 
 ###############################################################################
 # Background Profile for N_0
@@ -141,6 +141,7 @@ problem.add_equation("dt( dz(dz(foo)) - (k**2)*foo ) + f0*(dz(dz(psi))) " \
 problem.add_equation("foo - dt(psi) = 0")
 # Create copy of psi which is masked to the display domain
 problem.add_equation("psi_masked = DD_mask*psi")
+###############################################################################
 
 # Build solver
 solver = problem.build_solver(de.timesteppers.SBDF2)

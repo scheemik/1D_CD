@@ -95,9 +95,10 @@ tau_bf  = 1.0e0                 # [s] time constant for boundary forcing
 
 # Sponge layer window 1
 a_sp    = 1.0                   # [] amplitude ("height") of the sponge window
-b_sp    = 2*lam_z                 # [m] full width at half max of sponge window
+b_sp    = 2*lam_z               # [m] full width at half max of sponge window
 buff_sp = 1.5*b_sp              # [m] distance from bottom boundary to center of sponge
-tau_sp  = 2.0e-3                # [s] time constant for sponge layer
+tau_sp  = 1.0e0                 # [s] time constant for sponge layer
+gaussian_sp = True
 
 ###############################################################################
 ###############################################################################
@@ -132,25 +133,29 @@ else:
 # Sponge layer window 2
 c_sp    = z0 + buff_sp          # [m] location of center of sponge window window
 if use_sponge == True:
-    # the -4*ln(2) is to insure the FWHM is easily identifiable
-    win_sp_array = a_sp*np.exp(-4*np.log(2)*((z - c_sp)/b_sp)**2)
+    if gaussian_sp == True:
+        # the -4*ln(2) is to insure the FWHM is easily identifiable
+        win_sp_array = a_sp*np.exp(-4*np.log(2)*((z - c_sp)/b_sp)**2)
+    else:
+        # exponential
+        ex_slope = 3.0
+        #win_sp_array = np.exp(-ex_slope*(z-z0))
+        # tanh
+        t_slope = -20
+        win_sp_array = 0.5*a_sp*(np.tanh(t_slope*(z-c_sp))+1)
 else:
     win_sp_array = z * 0.0      # No sponge
 
 ###############################################################################
 # Run parameters
-dt              = 0.125         # [s] initial time step size
-snap_dt         = 32*dt          # [s] time step size for snapshots
+dt              = 0.05#0.125         # [s] initial time step size
+snap_dt         = 32*dt         # [s] time step size for snapshots
 snap_max_writes = 100           # [] max number of writes per snapshot file
 fh_mode         = 'overwrite'   # file handling mode, either 'overwrite' or 'append'
 # Stopping conditions for the simulation
 sim_time_stop  =T*stop_n_periods# [s] number of simulated seconds until the sim stops
 stop_wall_time = 180 * 60.0     # [s] length in minutes * 60 = length in seconds, sim stops if exceeded
 stop_iteration = np.inf         # [] number of iterations before the simulation stops
-
-# temporal ramp - probably should remove, already defined above
-# temporal_ramp = True
-# nT = 3.0
 
 ###############################################################################
 # Physical parameters
@@ -189,7 +194,7 @@ plot_rf            = False
 plot_twin          = False
 
 # Auxiliary snapshot plots
-plot_ef_total = True
+plot_ef_total = False
 plot_ef_comps = False
 
 # Miscellaneous
