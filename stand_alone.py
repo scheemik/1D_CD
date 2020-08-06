@@ -2,10 +2,10 @@
 
 1D Bousinessq streamfunction equation:
 
-dtt(dzz(psi) - k^2 psi) - k^2 N^2 psi + f_0 dzz(psi) - nu[dzz(psi) + k^4 psi]
+dt^2(dz^2(psi) - k^2 psi) - k^2 N^2 psi - nu[dz^4(psi) + k^4 psi] = 0
 
 where k is the horizontal wavenumber, N is stratification,
-    f_0 is the Coriolis parameter, and nu is the viscosity
+    and nu is the viscosity
 
 This script should be ran serially (because it is 1D).
 
@@ -18,15 +18,15 @@ import time
 from dedalus import public as de
 from dedalus.extras import flow_tools
 from dedalus.extras.plot_tools import quad_mesh, pad_limits
-from dedalus.core.operators import GeneralFunction
+#from dedalus.core.operators import GeneralFunction
 
 import logging
 logger = logging.getLogger(__name__)
 
 ###############################################################################
-# Import SwitchBoard Parameters (sbp)
-#   This import assumes the switchboard is in the same directory as the core code
-import switchboard as sbp
+# Switches
+plot_windows = True
+run_sim = True
 
 ###############################################################################
 # Run parameters
@@ -39,10 +39,7 @@ z0_dis = zf_dis - Lz_dis        # [m] The bottom of the displayed domain
 ###############################################################################
 # Physical parameters
 nu          = 1.0E-6        # [m^2/s] Viscosity (momentum diffusivity)
-Prandtl     = nu / kappa    # [] Prandtl number, about 7.0 for water at 20 C
-Rayleigh    = 1e6
 g           = 9.81          # [m/s^2] Acceleration due to gravity
-f_0         = 0.0           # [s^-1]        Reference Coriolis parameter
 # Problem parameters
 A       = 2.0e-4                # []            Amplitude of boundary forcing
 N_0     = 1.0                   # [rad/s]       Reference stratification
@@ -59,39 +56,36 @@ print('phase speed is',omega/m,'m/s')
 print('group speed is',omega*m/(k**2 + m**2),'m/s') # cushman-roisin and beckers 13.10, pg 400
 
 ###############################################################################
-# Boundary forcing window 1
-a_bf    = 1.0                   # [] amplitude ("height") of the forcing window
-b_bf    = lam_z                 # [m] full width at half max of forcing window
-buff_bf = 1.5*b_bf              # [m] distance from top boundary to center of forcing
+# Boundary forcing window parameters
+a_bf    = 3*lam_z               # [m] forcing area, height above display domain
+b_bf    = 0.3*a_bf              # [m] full width at half max of forcing window
+c_bf    = zf_dis + 0.5*a_bf     # [m] center of forcing area
 tau_bf  = 1.0e0                 # [s] time constant for boundary forcing
 
-# Sponge layer window 1
-a_sp    = 1.0                   # [] amplitude ("height") of the sponge window
-b_sp    = 2*lam_z               # [m] full width at half max of sponge window
-buff_sp = 1.5*b_sp              # [m] distance from bottom boundary to center of sponge
+# Sponge layer window parameters
+a_sp    = 3*lam_z               # [m] sponge area, height below display domain
+b_sp    = 0.3*a_sp              # [m] full width at half max of sponge window
+c_sp    = z0_dis - 0.5*a_sp     # [m] center of sponge area
 tau_sp  = 1.0e0                 # [s] time constant for sponge layer
 
 ###############################################################################
 # Simulated domain parameters
-zf     = zf_dis + 3*b_bf     # [m] top of simulated domain
-z0     = z0_dis - 3*b_sp     # [m] bottom of simulated domain
+zf     = zf_dis + a_bf          # [m] top of simulated domain
+z0     = z0_dis - a_sp          # [m] bottom of simulated domain
 Lz     = zf - z0                # [m] length of simulated domain
 dealias= 3/2                    # [] dealiasing factor
+
 # Bases and domain
 z_basis = de.Fourier('z', nz, interval=(z0, zf), dealias=dealias)
-domain = de.Domain([z_basis], grid_dtype=np.complex128)
-# Z grid
+domain  = de.Domain([z_basis], grid_dtype=np.complex128)
 z = domain.grid(0)
 
 # Define problem
 problem = de.IVP(domain, variables=['psi', 'foo'])
 problem.parameters['NU'] = nu
-problem.parameters['f0'] = f_0
 problem.parameters['N0'] = N_0
 
 ###############################################################################
-# Forcing from the boundary
-
 # Boundary forcing parameters
 problem.parameters['A']     = A
 problem.parameters['k']     = k
@@ -99,110 +93,103 @@ problem.parameters['m']     = m
 problem.parameters['omega'] = omega
 
 # Substitutions for boundary forcing (see C-R & B eq 13.7)
-problem.substitutions['f_psi'] = "A*sin(m*z - omega*t)"
-
-###############################################################################
-# Background Profile for N_0
-BP = domain.new_field(name = 'BP')
-BP_array = hf.BP_n_steps(sbp.n_steps, z, sbp.z0_dis, sbp.zf_dis, sbp.step_th)
-BP['g'] = BP_array
-problem.parameters['BP'] = BP
-
-###############################################################################
-# Masking to keep just display domain
-DD_mask = domain.new_field(name = 'DD_mask')
-DD_array = hf.make_DD_mask(z, sbp.z0_dis, sbp.zf_dis)
-DD_mask['g'] = DD_array
-problem.parameters['DD_mask'] = DD_mask
+problem.substitutions['psi_f'] = "A*sin(m*z - omega*t)"
 
 ###############################################################################
 # Boundary forcing window
-win_bf = domain.new_field(name = 'win_bf')
-win_bf['g'] = sbp.win_bf_array
+win_bf       = domain.new_field(name = 'win_bf')
+win_bf_array = np.exp(-4*np.log(2)*((z - c_bf)/b_bf)**2)     # Gaussian
+win_bf['g']  = win_bf_array
 problem.parameters['win_bf'] = win_bf
-problem.parameters['tau_bf'] = sbp.tau_bf # [s] time constant for boundary forcing
+problem.parameters['tau_bf'] = tau_bf   # [s] time constant for boundary forcing
 
 # Creating forcing terms
-problem.substitutions['F_term_psi'] = "win_bf * (f_psi - psi)/tau_bf"
+problem.substitutions['F_term_psi'] = "win_bf * (psi_f - psi)/tau_bf"
 
 ###############################################################################
 # Sponge window
-win_sp      = domain.new_field(name = 'win_sp')
-win_sp['g'] = sbp.win_sp_array
+win_sp       = domain.new_field(name = 'win_sp')
+win_sp_array = np.exp(-4*np.log(2)*((z - c_sp)/b_sp)**2)     # Gaussian
+win_sp['g']  = win_sp_array
 problem.parameters['win_sp'] = win_sp
-problem.parameters['tau_sp'] = sbp.tau_sp # [s] time constant for sponge layer
+problem.parameters['tau_sp'] = tau_sp   # [s] time constant for sponge layer
 
 # Creating sponge terms
 problem.substitutions['S_term_psi'] = "win_sp * psi / tau_sp"
 
 ###############################################################################
 # Plotting windows
-if sbp.plot_windows:
-    hf.plot_v_profiles(BP_array, sbp.win_bf_array, sbp.win_sp_array, z, omega, sbp.z0_dis, sbp.zf_dis, title_str=run_name)
+def plot_v_profiles(bf_array, sp_array, z, omega=None, z0_dis=None, zf_dis=None):
+    # This dictionary makes each subplot have the desired ratios
+    # The length of heights will be nrows and likewise len(widths)=ncols
+    plot_ratios = {'height_ratios': [1],
+                   'width_ratios': [1]}
+    # Set ratios by passing dictionary as 'gridspec_kw', and share y axis
+    fig, axes = plt.subplots(nrows=1, ncols=1, gridspec_kw=plot_ratios, sharey=True)
+    # Plot both windows
+    axes.plot(bf_array, z, label='Boundary forcing')
+    axes.plot(sp_array, z, label='Sponge layer')
+    # Add lines to denote display domain
+    if z0_dis != None and zf_dis != None:
+        axes.axhline(y=z0_dis, color='k', linestyle='--')
+        axes.axhline(y=zf_dis, color='k', linestyle='--')
+    axes.set_xlabel('Amplitude')
+    axes.set_ylabel(r'$z$ (m)')
+    axes.set_ylim([min(z),max(z)])
+    axes.legend()
+    #
+    fig.suptitle(r'%s' %('Forced 1D Wave Windows'))
+    plt.savefig('stand_alone_windows.png')
 
+if plot_windows:
+    plot_v_profiles(win_bf_array, win_sp_array, z, omega, z0_dis, zf_dis)
+
+if run_sim == False:
+    raise SystemExit(0)
 ###############################################################################
 # Define equations
-problem.add_equation("dt( dz(dz(foo)) - (k**2)*foo ) + f0*(dz(dz(psi))) " \
+problem.add_equation("dt( dz(dz(foo)) - (k**2)*foo ) " \
                      " - NU*(dz(dz(dz(dz(psi)))) + (k**4)*psi) " \
-                     " = (k**2)*((N0*BP)**2)*psi " \
+                     " = (k**2)*(N0**2)*psi " \
                      " + F_term_psi - S_term_psi ")
 # LHS must be first-order in ['dt'], so I'll define a temp variable
 problem.add_equation("foo - dt(psi) = 0")
-# Create copy of psi which is masked to the display domain
-problem.add_equation("psi_masked = DD_mask*psi")
 ###############################################################################
 
 # Build solver
 solver = problem.build_solver(de.timesteppers.SBDF2)
 logger.info('Solver built')
-solver.stop_sim_time  = sbp.sim_time_stop
-solver.stop_wall_time = sbp.stop_wall_time
-solver.stop_iteration = sbp.stop_iteration
+solver.stop_sim_time  = T*stop_n_periods    # [s] number of simulated seconds until the sim stops
+solver.stop_wall_time = 180 * 60.0          # [s] length in minutes * 60 = length in seconds, sim stops if exceeded
+solver.stop_iteration = np.inf              # [] number of iterations before the simulation stops
 
 # Above code modified from here: https://groups.google.com/forum/#!searchin/dedalus-users/%22wave$20equation%22%7Csort:date/dedalus-users/TJEOwHEDghU/g2x00YGaAwAJ
 
 ###############################################################################
-
 # Initial conditions
 psi = solver.state['psi']
-psi_masked = solver.state['psi_masked']
-
-psi['g']        = sbp.psi_initial
-psi_masked['g'] = sbp.psi_initial * DD_array
-
+psi['g'] = 0.0
 
 ###############################################################################
 # Analysis
-def add_new_file_handler(snapshot_directory='snapshots/new', sdt=sbp.snap_dt):
-    return solver.evaluator.add_file_handler(snapshot_directory, sim_dt=sdt, max_writes=sbp.snap_max_writes, mode=sbp.fh_mode)
+def add_new_file_handler(snapshot_directory='snapshots', sdt=0.25):
+    return solver.evaluator.add_file_handler(snapshot_directory, sim_dt=sdt, max_writes=25, mode='overwrite')
 
 # Add file handler for snapshots and output state of variables
 snapshots = add_new_file_handler('snapshots')
 snapshots.add_system(solver.state)
 
 ###############################################################################
-# CFL
-# CFL = flow_tools.CFL(solver, initial_dt=sbp.dt, cadence=sbp.CFL_cadence,
-#                      safety=sbp.CFL_safety, max_change=sbp.CFL_max_change,
-#                      min_change=sbp.CFL_min_change, max_dt=sbp.CFL_max_dt,
-#                      threshold=sbp.CFL_threshold)
-# CFL.add_velocities(('w'))
-###############################################################################
-# Flow properties
-# flow_name       = sbp.flow_name
-# flow            = flow_tools.GlobalFlowProperty(solver, cadence=sbp.flow_cadence)
-# flow.add_property(sbp.flow_property, name=flow_name)
-###############################################################################
 # Logger parameters
-endtime_str     = sbp.endtime_str
-time_factor     = T
-adapt_dt        = sbp.adapt_dt
-logger_cadence  = sbp.logger_cadence
-iteration_str   = sbp.iteration_str
-flow_log_message= sbp.flow_log_message
+endtime_str      = 'Sim end period: %f'
+time_factor      = T
+adapt_dt         = False
+logger_cadence   = 100
+iteration_str    = 'Iteration: %i, t/T: %e, dt/T: %e'
+flow_log_message = 'Max linear criterion = {0:f}'
 ###############################################################################
 # Store data for final plot
-store_this = psi #psi_masked
+store_this = psi
 store_this.set_scales(1)
 psi_gs = [np.copy(store_this['g']).real] # Plotting functions require float64, not complex128
 psi_cr = [np.copy(store_this['c']).real]
@@ -214,7 +201,7 @@ try:
     logger.info(endtime_str %(solver.stop_sim_time/time_factor))
     logger.info('Starting loop')
     start_time = time.time()
-    dt = sbp.dt
+    dt = 0.125
     while solver.proceed:
         # Adaptive time stepping controlled from switchboard
         if (adapt_dt):
@@ -252,8 +239,7 @@ t_array = np.array(t_list)
 arrays = {'psi_g_array':psi_g_array,
           'psi_c_reals':psi_c_reals,
           'psi_c_imags':psi_c_imags,
-          't_array':t_array,
-          'BP_array':BP_array}
+          't_array':t_array}
 for arr in arrays:
     file = open('arrays/'+arr, "wb")        # "wb" selects the "write binary" mode
     np.save(file, arrays[arr])
