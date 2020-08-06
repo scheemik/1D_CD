@@ -12,6 +12,7 @@ This script should be ran serially (because it is 1D).
 """
 
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import time
 
@@ -119,30 +120,25 @@ problem.substitutions['S_term_psi'] = "win_sp * psi / tau_sp"
 
 ###############################################################################
 # Plotting windows
-def plot_v_profiles(bf_array, sp_array, z, omega=None, z0_dis=None, zf_dis=None):
-    # This dictionary makes each subplot have the desired ratios
-    # The length of heights will be nrows and likewise len(widths)=ncols
-    plot_ratios = {'height_ratios': [1],
-                   'width_ratios': [1]}
-    # Set ratios by passing dictionary as 'gridspec_kw', and share y axis
-    fig, axes = plt.subplots(nrows=1, ncols=1, gridspec_kw=plot_ratios, sharey=True)
+def plot_v_profile(axis, bf_array, sp_array, z, omega=None, z0_dis=None, zf_dis=None):
     # Plot both windows
-    axes.plot(bf_array, z, label='Boundary forcing')
-    axes.plot(sp_array, z, label='Sponge layer')
+    axis.plot(bf_array, z, label='Boundary forcing')
+    axis.plot(sp_array, z, label='Sponge layer')
     # Add lines to denote display domain
     if z0_dis != None and zf_dis != None:
-        axes.axhline(y=z0_dis, color='k', linestyle='--')
-        axes.axhline(y=zf_dis, color='k', linestyle='--')
-    axes.set_xlabel('Amplitude')
-    axes.set_ylabel(r'$z$ (m)')
-    axes.set_ylim([min(z),max(z)])
-    axes.legend()
+        axis.axhline(y=z0_dis, color='k', linestyle='--')
+        axis.axhline(y=zf_dis, color='k', linestyle='--')
+    axis.set_xlabel('Amplitude')
+    axis.set_ylabel(r'$z$ (m)')
+    axis.set_ylim([min(z),max(z)])
+    axis.legend()
     #
-    fig.suptitle(r'%s' %('Forced 1D Wave Windows'))
-    plt.savefig('stand_alone_windows.png')
+    axis.set_title(r'%s' %('Windows'))
 
 if plot_windows:
-    plot_v_profiles(win_bf_array, win_sp_array, z, omega, z0_dis, zf_dis)
+    fig, axes = plt.subplots(nrows=1, ncols=1, sharey=True)
+    plot_v_profile(axes, win_bf_array, win_sp_array, z, omega, z0_dis, zf_dis)
+    plt.savefig('stand_alone_windows.png')
 
 if run_sim == False:
     raise SystemExit(0)
@@ -244,3 +240,37 @@ for arr in arrays:
     file = open('arrays/'+arr, "wb")        # "wb" selects the "write binary" mode
     np.save(file, arrays[arr])
     file.close
+
+def plot_z_vs_t(z, t_array, T, w_array, win_bf_array, win_sp_array, k, m, omega, z0_dis=None, zf_dis=None, c_map='RdBu_r'):
+    # Set aspect ratio of overall figure
+    w, h = mpl.figure.figaspect(0.5)
+    # This dictionary makes each subplot have the desired ratios
+    # The length of heights will be nrows and likewise len(widths)=ncols
+    plot_ratios = {'height_ratios': [1],
+                   'width_ratios': [1,5]}
+    # Set ratios by passing dictionary as 'gridspec_kw', and share y axis
+    fig, axes = plt.subplots(figsize=(w,h), nrows=1, ncols=2, gridspec_kw=plot_ratios, sharey=True)
+    #
+    plot_v_profile(axes[0], win_bf_array, win_sp_array, z, omega, z0_dis, zf_dis)
+    #
+    xmesh, ymesh = quad_mesh(x=t_array/T, y=z)
+    im = axes[1].pcolormesh(xmesh, ymesh, w_array, cmap=c_map)
+    # Find max of absolute value for colorbar for limits symmetric around zero
+    cmax = max(abs(w_array.flatten()))
+    if cmax==0.0:
+        cmax = 0.001 # to avoid the weird jump with the first frame
+    # Set upper and lower limits on colorbar
+    im.set_clim(-cmax, cmax)
+    # Add colorbar to im
+    cbar = plt.colorbar(im)#, format=ticker.FuncFormatter(latex_exp))
+    cbar.ax.ticklabel_format(style='sci', scilimits=(-2,2), useMathText=True)
+    # Add lines to denote display domain
+    if z0_dis != None and zf_dis != None:
+        axes[1].axhline(y=z0_dis, color='k', linestyle='--')
+        axes[1].axhline(y=zf_dis, color='k', linestyle='--')
+    #
+    axes[1].set_xlabel(r'$t/T$')
+    axes[1].set_title(r'$\Psi$ (m$^2$/s)')
+    plt.savefig('stand_alone_wave.png')
+
+plot_z_vs_t(z, t_array, T, psi_g_array, win_bf_array, win_sp_array, k, m, omega, z0_dis, zf_dis, c_map='RdBu_r')
