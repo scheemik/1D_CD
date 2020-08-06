@@ -19,7 +19,6 @@ import time
 from dedalus import public as de
 from dedalus.extras import flow_tools
 from dedalus.extras.plot_tools import quad_mesh, pad_limits
-#from dedalus.core.operators import GeneralFunction
 
 import logging
 logger = logging.getLogger(__name__)
@@ -67,13 +66,12 @@ tau_bf  = 1.0e0                 # [s] time constant for boundary forcing
 a_sp    = 3*lam_z               # [m] sponge area, height below display domain
 b_sp    = 0.3*a_sp              # [m] full width at half max of sponge window
 c_sp    = z0_dis - 0.5*a_sp     # [m] center of sponge area
-tau_sp  = 1.0e0                 # [s] time constant for sponge layer
+tau_sp  = 1.0e-1                # [s] time constant for sponge layer
 
 ###############################################################################
 # Simulated domain parameters
 zf     = zf_dis + a_bf          # [m] top of simulated domain
 z0     = z0_dis - a_sp          # [m] bottom of simulated domain
-Lz     = zf - z0                # [m] length of simulated domain
 dealias= 3/2                    # [] dealiasing factor
 
 # Bases and domain
@@ -185,11 +183,8 @@ iteration_str    = 'Iteration: %i, t/T: %e, dt/T: %e'
 flow_log_message = 'Max linear criterion = {0:f}'
 ###############################################################################
 # Store data for final plot
-store_this = psi
-store_this.set_scales(1)
-psi_gs = [np.copy(store_this['g']).real] # Plotting functions require float64, not complex128
-psi_cr = [np.copy(store_this['c']).real]
-psi_ci = [np.copy(store_this['c']).imag]
+psi.set_scales(1)
+psi_gs = [np.copy(psi['g']).real] # Plotting functions require float64, not complex128
 t_list = [solver.sim_time]
 ###############################################################################
 # Main loop
@@ -199,21 +194,15 @@ try:
     start_time = time.time()
     dt = 0.125
     while solver.proceed:
-        # Adaptive time stepping controlled from switchboard
         if (adapt_dt):
             dt = CFL.compute_dt()
         solver.step(dt)
         if solver.iteration % 1 == 0:
-            store_this.set_scales(1)
-            psi_gs.append(np.copy(store_this['g']).real)
-            psi_cr.append(np.copy(store_this['c']).real)
-            psi_ci.append(np.copy(store_this['c']).imag)
+            psi.set_scales(1)
+            psi_gs.append(np.copy(psi['g']).real)
             t_list.append(solver.sim_time)
         if solver.iteration % logger_cadence == 0:
             logger.info(iteration_str %(solver.iteration, solver.sim_time/time_factor, dt/time_factor))
-            # logger.info(flow_log_message.format(flow.max(flow_name)))
-            # if np.isnan(flow.max(flow_name)):
-            #     raise NameError('Code blew up it seems')
 except:
     logger.error('Exception raised, triggering end of main loop.')
     raise
@@ -227,19 +216,7 @@ finally:
 
 # Create space-time plot
 psi_g_array = np.transpose(np.array(psi_gs))
-psi_c_reals = np.transpose(np.array(psi_cr))
-psi_c_imags = np.transpose(np.array(psi_ci))
 t_array = np.array(t_list)
-
-# Save arrays to files
-arrays = {'psi_g_array':psi_g_array,
-          'psi_c_reals':psi_c_reals,
-          'psi_c_imags':psi_c_imags,
-          't_array':t_array}
-for arr in arrays:
-    file = open('arrays/'+arr, "wb")        # "wb" selects the "write binary" mode
-    np.save(file, arrays[arr])
-    file.close
 
 def plot_z_vs_t(z, t_array, T, w_array, win_bf_array, win_sp_array, k, m, omega, z0_dis=None, zf_dis=None, c_map='RdBu_r'):
     # Set aspect ratio of overall figure
