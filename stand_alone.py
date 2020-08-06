@@ -25,12 +25,13 @@ logger = logging.getLogger(__name__)
 
 ###############################################################################
 # Switches
-plot_windows = True
+plot_windows = False
 run_sim = True
 
 ###############################################################################
 # Run parameters
-stop_n_periods = 50             # [] oscillation periods
+stop_n_periods = 25             # [] oscillation periods
+dt             = 0.125          # [s] time step for simulation
 # Displayed domain parameters
 nz     = 1024                   # [] number of grid points in the z direction
 zf_dis = 0.0                    # [m] the top of the displayed z domain
@@ -57,16 +58,16 @@ print('group speed is',omega*m/(k**2 + m**2),'m/s') # cushman-roisin and beckers
 
 ###############################################################################
 # Boundary forcing window parameters
-a_bf    = 3*lam_z               # [m] forcing area, height above display domain
-b_bf    = 0.3*a_bf              # [m] full width at half max of forcing window
+b_bf    = 1*lam_z               # [m] full width at half max of forcing window
+a_bf    = 3*b_bf               # [m] forcing area, height above display domain
 c_bf    = zf_dis + 0.5*a_bf     # [m] center of forcing area
 tau_bf  = 1.0e0                 # [s] time constant for boundary forcing
 
 # Sponge layer window parameters
-a_sp    = 3*lam_z               # [m] sponge area, height below display domain
-b_sp    = 0.3*a_sp              # [m] full width at half max of sponge window
+b_sp    = 1*lam_z               # [m] full width at half max of sponge window
+a_sp    = 3*b_sp                # [m] sponge area, height below display domain
 c_sp    = z0_dis - 0.5*a_sp     # [m] center of sponge area
-tau_sp  = 1.0e-1                # [s] time constant for sponge layer
+tau_sp  = 3.0e-3                # [s] time constant for sponge layer
 
 ###############################################################################
 # Simulated domain parameters
@@ -192,7 +193,6 @@ try:
     logger.info(endtime_str %(solver.stop_sim_time/time_factor))
     logger.info('Starting loop')
     start_time = time.time()
-    dt = 0.125
     while solver.proceed:
         if (adapt_dt):
             dt = CFL.compute_dt()
@@ -218,7 +218,7 @@ finally:
 psi_g_array = np.transpose(np.array(psi_gs))
 t_array = np.array(t_list)
 
-def plot_z_vs_t(z, t_array, T, w_array, win_bf_array, win_sp_array, k, m, omega, z0_dis=None, zf_dis=None, c_map='RdBu_r'):
+def plot_z_vs_t(z, t_array, T, w_array, win_bf_array, win_sp_array, z0_dis=None, zf_dis=None, c_map='RdBu_r', title_str='1D forced wave'):
     # Set aspect ratio of overall figure
     w, h = mpl.figure.figaspect(0.5)
     # This dictionary makes each subplot have the desired ratios
@@ -248,6 +248,8 @@ def plot_z_vs_t(z, t_array, T, w_array, win_bf_array, win_sp_array, k, m, omega,
     #
     axes[1].set_xlabel(r'$t/T$')
     axes[1].set_title(r'$\Psi$ (m$^2$/s)')
+    fig.suptitle(title_str)
     plt.savefig('stand_alone_wave.png')
 
-plot_z_vs_t(z, t_array, T, psi_g_array, win_bf_array, win_sp_array, k, m, omega, z0_dis, zf_dis, c_map='RdBu_r')
+title_str = r'$(\tau_{sp}, $FWHM$/\lambda)$=(%.2e, %d)' %(tau_sp,b_sp/lam_z)
+plot_z_vs_t(z, t_array, T, psi_g_array, win_bf_array, win_sp_array, z0_dis, zf_dis, c_map='RdBu_r', title_str=title_str)
