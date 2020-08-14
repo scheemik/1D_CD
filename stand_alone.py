@@ -67,7 +67,7 @@ tau_bf  = 1.0e-0                 # [s] time constant for boundary forcing
 b_sp    = 1*lam_z               # [m] full width at half max of sponge window
 a_sp    = 3*b_sp                # [m] sponge area, height below display domain
 c_sp    = z0_dis - 0.5*a_sp     # [m] center of sponge area
-tau_sp  = 1.0e-2                # [s] time constant for sponge layer
+tau_sp  = 1.0e-0                # [s] time constant for sponge layer
 
 ###############################################################################
 # Simulated domain parameters
@@ -115,7 +115,9 @@ problem.parameters['win_sp'] = win_sp
 problem.parameters['tau_sp'] = tau_sp   # [s] time constant for sponge layer
 
 # Creating sponge terms
-problem.substitutions['S_term_psi'] = "win_sp * psi / tau_sp"
+problem.substitutions['delta2dt_psi'] = "(dz(dz(foo)) - (k**2)*foo )"
+#problem.substitutions['S_term_psi'] = "win_sp * psi / tau_sp"
+problem.substitutions['S_term_psi'] = "win_sp * delta2dt_psi / tau_sp"
 
 ###############################################################################
 # Plotting windows
