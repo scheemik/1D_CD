@@ -30,7 +30,7 @@ run_sim = True
 
 ###############################################################################
 # Run parameters
-stop_n_periods = 25             # [] oscillation periods
+stop_n_periods = 35             # [] number of oscillation periods to run the sim for
 dt             = 0.125          # [s] time step for simulation
 # Displayed domain parameters
 nz     = 1024                   # [] number of grid points in the z direction
@@ -59,15 +59,15 @@ print('group speed is',omega*m/(k**2 + m**2),'m/s') # cushman-roisin and beckers
 ###############################################################################
 # Boundary forcing window parameters
 b_bf    = 1*lam_z               # [m] full width at half max of forcing window
-a_bf    = 3*b_bf               # [m] forcing area, height above display domain
+a_bf    = 3*b_bf                # [m] forcing area, height above display domain
 c_bf    = zf_dis + 0.5*a_bf     # [m] center of forcing area
-tau_bf  = 1.0e0                 # [s] time constant for boundary forcing
+tau_bf  = 1.0e-0                 # [s] time constant for boundary forcing
 
 # Sponge layer window parameters
 b_sp    = 1*lam_z               # [m] full width at half max of sponge window
 a_sp    = 3*b_sp                # [m] sponge area, height below display domain
 c_sp    = z0_dis - 0.5*a_sp     # [m] center of sponge area
-tau_sp  = 3.0e-3                # [s] time constant for sponge layer
+tau_sp  = 1.0e-2                # [s] time constant for sponge layer
 
 ###############################################################################
 # Simulated domain parameters
