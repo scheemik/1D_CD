@@ -2,7 +2,7 @@
 
 1D Bousinessq streamfunction equation:
 
-dtt(dzz(psi) - k^2 psi) - k^2 N^2 psi + f_0 dzz(psi) - nu[dzz(psi) + k^4 psi]
+dt^2[dz^2(psi) - k^2 psi] - k^2 N^2 psi + f_0 dz^2(psi) - nu[dz^4(psi) + k^4 psi] = 0
 
 where k is the horizontal wavenumber, N is stratification,
     f_0 is the Coriolis parameter, and nu is the viscosity
@@ -41,7 +41,6 @@ import helper_functions as hf
 import switchboard as sbp
 # Physical parameters
 nu          = sbp.nu            # [m^2/s] Viscosity (momentum diffusivity)
-#kappa       = sbp.kappa         # [m^2/s] Thermal diffusivity
 f_0         = sbp.f_0           # [s^-1]        Reference Coriolis parameter
 g           = sbp.g             # [m/s^2] Acceleration due to gravity
 # Problem parameters
@@ -124,7 +123,9 @@ problem.parameters['win_sp'] = win_sp
 problem.parameters['tau_sp'] = sbp.tau_sp # [s] time constant for sponge layer
 
 # Creating sponge terms
-problem.substitutions['S_term_psi'] = "win_sp * psi / tau_sp"
+#problem.substitutions['S_term_psi'] = "win_sp * psi / tau_sp"
+problem.substitutions['nabla2dt_psi'] = "(dz(dz(foo)) - (k**2)*foo )"
+problem.substitutions['S_term_psi'] = "win_sp * nabla2dt_psi / tau_sp"
 
 ###############################################################################
 # Plotting windows

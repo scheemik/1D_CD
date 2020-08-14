@@ -14,7 +14,7 @@ from dedalus import public as de
 # Main parameters, the ones I'll change a lot. Many more below
 
 # Run parameters
-stop_n_periods = 50             # [] oscillation periods
+stop_n_periods = 40             # [] oscillation periods
 
 # Displayed domain parameters
 nz     = 1024                   # [] number of grid points in the z direction
@@ -81,30 +81,29 @@ use_sponge              = True
 use_rayleigh_friction   = False
 boundary_forcing_region = True  # If False, waves will be forced over entire domain
 
-# Measurements
-take_ef_comp  = False # Energy flux terms recorded separately
-# Records snapshots of total vertical energy flux
-take_ef_snaps = False # Total energy flux recorded
+# # Measurements
+# take_ef_comp  = False # Energy flux terms recorded separately
+# # Records snapshots of total vertical energy flux
+# take_ef_snaps = False # Total energy flux recorded
 
 ###############################################################################
-# Boundary forcing window 1
-a_bf    = 1.0                   # [] amplitude ("height") of the forcing window
-b_bf    = lam_z                 # [m] full width at half max of forcing window
-buff_bf = 1.5*b_bf              # [m] distance from top boundary to center of forcing
-tau_bf  = 1.0e0                 # [s] time constant for boundary forcing
+# Boundary forcing window parameters
+b_bf    = 1*lam_z               # [m] full width at half max of forcing window
+a_bf    = 3*b_bf                # [m] forcing area, height above display domain
+c_bf    = zf_dis + 0.5*a_bf     # [m] center of forcing area
+tau_bf  = 1.0e-0                 # [s] time constant for boundary forcing
 
-# Sponge layer window 1
-a_sp    = 1.0                   # [] amplitude ("height") of the sponge window
-b_sp    = 2*lam_z               # [m] full width at half max of sponge window
-buff_sp = 1.5*b_sp              # [m] distance from bottom boundary to center of sponge
-tau_sp  = 1.0e0                 # [s] time constant for sponge layer
-gaussian_sp = True
+# Sponge layer window parameters
+b_sp    = 1*lam_z               # [m] full width at half max of sponge window
+a_sp    = 3*b_sp                # [m] sponge area, height below display domain
+c_sp    = z0_dis - 0.5*a_sp     # [m] center of sponge area
+tau_sp  = 1.0e-0                # [s] time constant for sponge layer
 
 ###############################################################################
 ###############################################################################
 # Simulated domain parameters
-zf     = zf_dis + 2*buff_bf     # [m] top of simulated domain
-z0     = z0_dis - 2*buff_sp     # [m] bottom of simulated domain
+zf     = zf_dis + a_bf          # [m] top of simulated domain
+z0     = z0_dis - a_sp          # [m] bottom of simulated domain
 Lz     = zf - z0                # [m] length of simulated domain
 dealias= 3/2                    # [] dealiasing factor
 
@@ -122,27 +121,17 @@ n_steps = 0
 step_th = 1.0/m
 
 # Boundary forcing window 2
-c_bf    = zf - buff_bf          # [m] location of center of boundary forcing window
 if boundary_forcing_region == True:
     # the -4*ln(2) is to insure the FWHM is easily identifiable
-    win_bf_array = a_bf*np.exp(-4*np.log(2)*((z - c_bf)/b_bf)**2)
+    win_bf_array = np.exp(-4*np.log(2)*((z - c_bf)/b_bf)**2)     # Gaussian
 else:
     win_bf_array = z*0.0 + 1.0  # Forcing over entire domain
     use_sponge = False          # Having sp layer and full domain forcing causes problems
 
 # Sponge layer window 2
-c_sp    = z0 + buff_sp          # [m] location of center of sponge window window
 if use_sponge == True:
-    if gaussian_sp == True:
-        # the -4*ln(2) is to insure the FWHM is easily identifiable
-        win_sp_array = a_sp*np.exp(-4*np.log(2)*((z - c_sp)/b_sp)**2)
-    else:
-        # exponential
-        ex_slope = 3.0
-        #win_sp_array = np.exp(-ex_slope*(z-z0))
-        # tanh
-        t_slope = -20
-        win_sp_array = 0.5*a_sp*(np.tanh(t_slope*(z-c_sp))+1)
+    # the -4*ln(2) is to insure the FWHM is easily identifiable
+    win_sp_array = np.exp(-4*np.log(2)*((z - c_sp)/b_sp)**2)     # Gaussian
 else:
     win_sp_array = z * 0.0      # No sponge
 
