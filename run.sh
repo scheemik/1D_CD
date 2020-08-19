@@ -108,8 +108,8 @@ fi
 
 ###############################################################################
 # plot z vs. t and k vs. t for Psi
-#	if (VER = 0, 1, 2, 4)
-if [ $VER -eq 0 ] || [ $VER -eq 1 ] || [ $VER -eq 2 ] || [ $VER -eq 4 ]
+#	if (VER = 0, 2, 4)
+if [ $VER -eq 0 ] || [ $VER -eq 2 ] || [ $VER -eq 4 ]
 then
 	echo ''
 	echo '--Checking for array files--'
