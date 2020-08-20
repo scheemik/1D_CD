@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 ###############################################################################
 # Switches
-plot_profiles = True
-run_sim = False
+plot_profiles = False
+run_sim = True
 
 ###############################################################################
 # Run parameters
@@ -181,7 +181,7 @@ if run_sim == False:
 # Define equations
 problem.add_equation("dt( dz(dz(foo)) - (k**2)*foo ) " \
                      " - NU*(dz(dz(dz(dz(psi)))) + (k**4)*psi) " \
-                     " = (k**2)*(N0**2)*psi " \
+                     " = (k**2)*BP*(N0**2)*psi " \
                      " + F_term_psi - S_term_psi ")
 # LHS must be first-order in ['dt'], so I'll define a temp variable
 problem.add_equation("foo - dt(psi) = 0")
@@ -254,7 +254,7 @@ finally:
 psi_g_array = np.transpose(np.array(psi_gs))
 t_array = np.array(t_list)
 
-def plot_z_vs_t(z, t_array, T, w_array, win_bf_array, win_sp_array, z0_dis=None, zf_dis=None, c_map='RdBu_r', title_str='1D forced wave'):
+def plot_z_vs_t(z, t_array, T, w_array, bp_array=None, bf_array=None, sp_array=None, z0_dis=None, zf_dis=None, c_map='RdBu_r', title_str='1D forced wave'):
     # Set aspect ratio of overall figure
     w, h = mpl.figure.figaspect(0.5)
     # This dictionary makes each subplot have the desired ratios
@@ -264,7 +264,7 @@ def plot_z_vs_t(z, t_array, T, w_array, win_bf_array, win_sp_array, z0_dis=None,
     # Set ratios by passing dictionary as 'gridspec_kw', and share y axis
     fig, axes = plt.subplots(figsize=(w,h), nrows=1, ncols=2, gridspec_kw=plot_ratios, sharey=True)
     #
-    plot_v_profile(axes[0], win_bf_array, win_sp_array, z, omega, z0_dis, zf_dis)
+    plot_v_profile(axes[0], z, omega, z0_dis, zf_dis, bp_array, bf_array, sp_array)
     #
     xmesh, ymesh = quad_mesh(x=t_array/T, y=z)
     im = axes[1].pcolormesh(xmesh, ymesh, w_array, cmap=c_map)
@@ -288,4 +288,4 @@ def plot_z_vs_t(z, t_array, T, w_array, win_bf_array, win_sp_array, z0_dis=None,
     plt.savefig('stand_alone_wave.png')
 
 title_str = r'$(\tau_{sp}, $FWHM$/\lambda)$=(%.2e, %d)' %(tau_sp,b_sp/lam_z)
-plot_z_vs_t(z, t_array, T, psi_g_array, win_bf_array, win_sp_array, z0_dis, zf_dis, c_map='RdBu_r', title_str=title_str)
+plot_z_vs_t(z, t_array, T, psi_g_array, bp_array=BP_array, bf_array=None, sp_array=None, z0_dis=z0_dis, zf_dis=zf_dis, c_map='RdBu_r', title_str=title_str)
