@@ -63,8 +63,15 @@ domain      = sbp.domain
 # Z grid
 z_da        = sbp.z_da
 z           = sbp.z
+nz          = sbp.nz
+dz          = sbp.dz
 # Getting wavenumbers
 ks          = sbp.ks
+
+ks_mod = np.copy(np.array(ks))
+kfile = open('ks_mod', "w")        # "wb" selects the "write binary" mode
+np.savetxt(kfile, hf.sort_k_coeffs(ks_mod, nz))
+kfile.close
 
 # Define problem
 problem = de.IVP(domain, variables=['psi', 'foo', 'psi_masked'])
@@ -201,6 +208,21 @@ psi_cr = [np.copy(store_this['c']).real]
 psi_ci = [np.copy(store_this['c']).imag]
 t_list = [solver.sim_time]
 ###############################################################################
+# Filtering in wavenumber space
+
+Filter_ks = domain.new_field()
+new_f_psi = domain.new_field()
+
+Filter_ks['c'][ks==0] = 0
+
+def filter_psi():
+    psi['c'][1] = 0j
+    #de.operators.GeneralFunction(domain, layout='c', func=Filter_ks*psi, out=new_f_psi)
+# filter_psi()
+# print('new_f_psi:')
+# print(new_f_psi['g'].shape)
+# new_psi_g = [np.copy(new_f_psi['g']).real]
+###############################################################################
 # Main loop
 try:
     logger.info(endtime_str %(solver.stop_sim_time/time_factor))
@@ -214,11 +236,19 @@ try:
         solver.step(dt)
         if solver.iteration % 1 == 0:
             store_this.set_scales(1)
-            psi_gs.append(np.copy(store_this['g']).real)
-            psi_cr.append(np.copy(store_this['c']).real)
-            psi_ci.append(np.copy(store_this['c']).imag)
+            filter_psi()
+            this_psi_g = np.copy(store_this['g']).real
+            this_psi_c = np.copy(store_this['c']).real
+            psi_gs.append(this_psi_g)
+
+            # new_psi_g.append(np.copy(new_f_psi['g']).real)
+
+            psi_cr.append(hf.sort_k_coeffs(np.copy(store_this['c']).real, nz))
+            psi_ci.append(hf.sort_k_coeffs(np.copy(store_this['c']).imag, nz))
             t_list.append(solver.sim_time)
         if solver.iteration % logger_cadence == 0:
+            #print(this_psi_c)
+            #print('max in filtered psi',max(abs(this_psi_c)))
             logger.info(iteration_str %(solver.iteration, solver.sim_time/time_factor, dt/time_factor))
             # logger.info(flow_log_message.format(flow.max(flow_name)))
             # if np.isnan(flow.max(flow_name)):
@@ -233,15 +263,46 @@ finally:
     logger.info('Run time: %.2f sec' %(end_time-start_time))
     logger.info('Run time: %f cpu-hr' %((end_time-start_time)/60/60*domain.dist.comm_cart.size))
 
-
 # Create space-time plot
 psi_g_array = np.transpose(np.array(psi_gs))
+print('psi_g_array:')
+print(psi_g_array.shape)
+# new_psi_array = np.transpose(np.array(new_psi_g))
+# print('new_psi_array:')
+# print(new_psi_array.shape)
 psi_c_reals = np.transpose(np.array(psi_cr))
 psi_c_imags = np.transpose(np.array(psi_ci))
 t_array = np.array(t_list)
 
+def FT_in_space(t, z, data, dz):
+    # FT in space (z) of the data (axis 1 is z) for positive k_z
+    A = np.fft.fft(data, axis=1)
+    # make a copy for the negative k_z
+    B = np.copy(A)
+    # find relevant wave numbers
+    k_zs = np.fft.fftfreq(len(z), dz)
+    kz_grid, t_grid = np.meshgrid(k_zs, t, indexing='ij')
+    # Create mask to keep positive k_zs, relies on integer arithmetic
+    kz_p_mask = np.ceil((np.sign(kz_grid) + 1.0)/2)
+    #  -1 becomes 0, negative kzs are masked out
+    #   0 becomes 1, no change to kzs of 0 - masked out
+    #   1 becomes 1, no change to positive kzs
+    A = A * kz_p_mask
+    # Create mask to keep negative k_xs - relies on integer arithmetic
+    kz_n_mask = np.abs(np.ceil((np.sign(kz_grid) - 1.0)/2))
+    #  -1 becomes 1, no change to negative kzs
+    #   0 becomes 1, no change to kzs of 0
+    #   1 becomes 0, positive kzs are masked out
+    B = B * kz_n_mask
+    # inverse fourier transform in space (x)
+    A_zp = np.fft.ifft(A, axis=1)
+    B_zn = np.fft.ifft(B, axis=1)
+    return A_zp.real, B_zn.real
+
+psi_A, psi_B = FT_in_space(t_array, z, psi_g_array, dz)
+
 # Save arrays to files
-arrays = {'psi_g_array':psi_g_array,
+arrays = {'psi_g_array':psi_B, #psi_g_array,
           'psi_c_reals':psi_c_reals,
           'psi_c_imags':psi_c_imags,
           't_array':t_array,

@@ -199,6 +199,12 @@ def plot_A_vs_t(t_array, T, data_array, A, k, m, omega, nT=0.0, title_str='Force
     #plt.show()
     plt.savefig('f_1D_A_vs_t.png')
 
+def sort_k_coeffs(arr, nz):
+    sorted_arr = np.zeros(nz-1)
+    sorted_arr[0:(nz//2-1)] = arr[(nz//2):(nz-1)]
+    sorted_arr[(nz//2-1):(nz-1)] = arr[0:(nz//2)]
+    return sorted_arr
+
 def plot_k_vs_t(ks, t_array, T, real_array, imag_array, k, m, omega, c_map='RdBu_r', title_str='Forced 1D Wave'):
     # Set aspect ratio of overall figure
     w, h = mpl.figure.figaspect(0.5)
@@ -209,7 +215,7 @@ def plot_k_vs_t(ks, t_array, T, real_array, imag_array, k, m, omega, c_map='RdBu
     # Set ratios by passing dictionary as 'gridspec_kw', and share y axis
     fig, axes = plt.subplots(figsize=(w,h), nrows=2, ncols=1, gridspec_kw=plot_ratios, sharey=True)
     #
-    xmesh, ymesh = quad_mesh(x=t_array/T, y=ks)
+    xmesh, ymesh = quad_mesh(x=t_array/T, y=sort_k_coeffs(ks,1024))
     im_r = axes[0].pcolormesh(xmesh, ymesh, real_array, cmap=c_map)
     im_i = axes[1].pcolormesh(xmesh, ymesh, imag_array, cmap=c_map)
     # # Find max of absolute value for colorbar for limits symmetric around zero

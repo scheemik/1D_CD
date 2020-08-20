@@ -14,7 +14,7 @@ from dedalus import public as de
 # Main parameters, the ones I'll change a lot. Many more below
 
 # Run parameters
-stop_n_periods = 40             # [] oscillation periods
+stop_n_periods = 15             # [] oscillation periods
 
 # Displayed domain parameters
 nz     = 1024                   # [] number of grid points in the z direction
@@ -105,6 +105,7 @@ tau_sp  = 1.0e-0                # [s] time constant for sponge layer
 zf     = zf_dis + a_bf          # [m] top of simulated domain
 z0     = z0_dis - a_sp          # [m] bottom of simulated domain
 Lz     = zf - z0                # [m] length of simulated domain
+dz     = Lz / nz                # [m] spacing between each grid point
 dealias= 3/2                    # [] dealiasing factor
 
 # Bases and domain
@@ -117,7 +118,7 @@ z = domain.grid(0)
 ks = z_basis.wavenumbers
 
 # Background profile in N_0
-n_steps = 0
+n_steps = 1
 step_th = 1.0/m
 
 # Boundary forcing window 2
@@ -158,9 +159,9 @@ g           = 9.81          # [m/s^2] Acceleration due to gravity
 # Plotting parameters
 
 plot_spacetime = True
-plot_wavespace = True
-plot_amplitude = True
-plot_windows   = True
+plot_wavespace = False
+plot_amplitude = False
+plot_windows   = False
 # If true, plot will include full simulated domain, if false, just the display domain
 plot_full_domain = True
 
