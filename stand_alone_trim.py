@@ -25,12 +25,12 @@ logger = logging.getLogger(__name__)
 
 ###############################################################################
 # Switches
-plot_windows = False
-run_sim = True
+plot_profiles = True
+run_sim = False
 
 ###############################################################################
 # Run parameters
-stop_n_periods = 35             # [] number of oscillation periods to run the sim for
+stop_n_periods = 25             # [] number of oscillation periods to run the sim for
 dt             = 0.125          # [s] time step for simulation
 # Displayed domain parameters
 nz     = 1024                   # [] number of grid points in the z direction
@@ -96,6 +96,36 @@ problem.parameters['omega'] = omega
 problem.substitutions['psi_f'] = "A*sin(m*z - omega*t)"
 
 ###############################################################################
+# Background profile in N_0
+def BP_n_steps(n, z, z0_dis, zf_dis, th):
+    """
+    n           number of steps
+    z           array of z values
+    z0_dis      bottom of display domain
+    zf_dis      top of display domain
+    th          step thickness
+    """
+    # create blank array the same size as z
+    BP_array = z*0+1
+    # divide the display range for n steps
+    Lz_dis = zf_dis - z0_dis
+    # find step separation
+    step_sep = Lz_dis / (n+1)
+    for i in range(n):
+        step_c   = zf_dis - (i+1)*step_sep
+        step_top = step_c + (th/2)
+        step_bot = step_c - (th/2)
+        for j in range(len(BP_array)):
+            if z[j] < step_top and z[j] > step_bot:
+                BP_array[j] = 0
+    return BP_array
+# Background Profile for N_0
+BP          = domain.new_field(name = 'BP')
+BP_array    = BP_n_steps(1, z, z0_dis, zf_dis, 1.0/m)
+BP['g']     = BP_array
+problem.parameters['BP'] = BP
+
+###############################################################################
 # Boundary forcing window
 win_bf       = domain.new_field(name = 'win_bf')
 win_bf_array = np.exp(-4*np.log(2)*((z - c_bf)/b_bf)**2)     # Gaussian
@@ -121,10 +151,14 @@ problem.substitutions['S_term_psi'] = "win_sp * delta2dt_psi / tau_sp"
 
 ###############################################################################
 # Plotting windows
-def plot_v_profile(axis, bf_array, sp_array, z, omega=None, z0_dis=None, zf_dis=None):
-    # Plot both windows
-    axis.plot(bf_array, z, label='Boundary forcing')
-    axis.plot(sp_array, z, label='Sponge layer')
+def plot_v_profile(axis, z, omega=None, z0_dis=None, zf_dis=None, bp_array=None, bf_array=None, sp_array=None):
+    # Plot profiles
+    if type(bp_array) is np.ndarray:
+        axis.plot(bp_array, z, label='Background Profile')
+    if type(bf_array) is np.ndarray:
+        axis.plot(bf_array, z, label='Boundary forcing')
+    if type(sp_array) is np.ndarray:
+        axis.plot(sp_array, z, label='Sponge layer')
     # Add lines to denote display domain
     if z0_dis != None and zf_dis != None:
         axis.axhline(y=z0_dis, color='k', linestyle='--')
@@ -134,11 +168,11 @@ def plot_v_profile(axis, bf_array, sp_array, z, omega=None, z0_dis=None, zf_dis=
     axis.set_ylim([min(z),max(z)])
     axis.legend()
     #
-    axis.set_title(r'%s' %('Windows'))
+    axis.set_title(r'%s' %('Profiles'))
 
-if plot_windows:
+if plot_profiles:
     fig, axes = plt.subplots(nrows=1, ncols=1, sharey=True)
-    plot_v_profile(axes, win_bf_array, win_sp_array, z, omega, z0_dis, zf_dis)
+    plot_v_profile(axes, z, omega, z0_dis, zf_dis, BP_array, win_bf_array, win_sp_array)
     plt.savefig('stand_alone_windows.png')
 
 if run_sim == False:
