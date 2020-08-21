@@ -299,10 +299,10 @@ def FT_in_space(t, z, data, dz):
     B_zn = np.fft.ifft(B, axis=1)
     return A_zp.real, B_zn.real
 
-psi_A, psi_B = FT_in_space(t_array, z, psi_g_array, dz)
+#psi_A, psi_B = FT_in_space(t_array, z, psi_g_array, dz)
 
 # Save arrays to files
-arrays = {'psi_g_array':psi_B, #psi_g_array,
+arrays = {'psi_g_array':psi_g_array,
           'psi_c_reals':psi_c_reals,
           'psi_c_imags':psi_c_imags,
           't_array':t_array,

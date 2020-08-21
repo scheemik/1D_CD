@@ -44,7 +44,7 @@ if not os.path.exists(output_path):
         os.makedirs(output_path)
 
 # Labels
-hori_label = r'$\Psi$ (m$^2$/s)' 
+hori_label = r'$\Psi$ (m$^2$/s)'
 vert_label = r'$z$ (m)'
 
 # Parameters
@@ -127,14 +127,16 @@ for i in range(t_len):
     # format axis labels and ticks
     hf.format_labels_and_ticks(ax[1], hori_label)
     # Add title to task plot
-    ax[1].set_title(tasks[j], fontsize=title_size)
+    #ax[1].set_title(tasks[j], fontsize=title_size)
     # add display bounds
     hf.add_dis_bounds(ax[0], z0_dis, zf_dis)
     hf.add_dis_bounds(ax[1], z0_dis, zf_dis)
     # Add title for overall figure
     t = dsets[0][i][0]
-    title_str = '{:}, $t/T=${:2.2f}'
-    fig.suptitle(title_str.format(name, t/T), fontsize=suptitle_size)
+    #title_str = '{:}, $t/T=${:2.2f}'
+    title_str = '$t/T=${:2.2f}'
+    #fig.suptitle(title_str.format(name, t/T), fontsize=suptitle_size)
+    fig.suptitle(title_str.format(t/T), fontsize=suptitle_size)
     # Save figure as image in designated output directory
     save_fig_as_frame(fig, i, output_path, dpi)
     plt.close(fig)
