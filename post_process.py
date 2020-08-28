@@ -12,11 +12,12 @@ Options:
 import h5py
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 from matplotlib import ticker
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-plt.ioff()
+from dedalus.extras.plot_tools import quad_mesh
+#plt.ioff()
 
 # Parse input parameters
 from docopt import docopt
@@ -25,12 +26,6 @@ h5_files = args['<files>']
 
 import switchboard as sbp
 import helper_functions as hf
-
-
-# Merge snapshots into one file (might make a really big file)
-from dedalus.tools import post
-post.merge_sets("snapshots/analysis.h5", h5_files, cleanup=True)
-
 
 # Parameters
 tasks = ['psi']
@@ -48,8 +43,22 @@ skip_nT = 0
 # Helper functions
 
 ###############################################################################
-# for task in tasks:
-
+for task in tasks:
+    for filename in h5_files:
+        with h5py.File(filename, mode='r') as f:
+            psi = f['tasks']['psi']
+            psi_array = np.transpose(np.array(psi[()]))
+            psi_real = psi_array.real
+            print(psi_array.shape)
+            t = np.array(f['scales']['sim_time'])
+            print(t.shape)
+            z = np.array(f['scales']['z']['1.0'])
+            print(z.shape)
+            fig = plt.figure(figsize=(10,10))
+            # plt.imshow(psi_real)
+            xmesh, ymesh = quad_mesh(x=t/T, y=z)
+            plt.pcolormesh(xmesh, ymesh, psi_real)
+            plt.show()
 
 # dsets will be an array containing all the data
 #   it will have a size of: tasks x timesteps x 2 x nx x nz (5D)
