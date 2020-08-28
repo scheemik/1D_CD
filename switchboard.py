@@ -14,7 +14,7 @@ from dedalus import public as de
 # Main parameters, the ones I'll change a lot. Many more below
 
 # Run parameters
-stop_n_periods = 15             # [] oscillation periods
+stop_n_periods = 50             # [] oscillation periods
 
 # Displayed domain parameters
 nz     = 1024                   # [] number of grid points in the z direction

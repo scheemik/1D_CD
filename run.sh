@@ -19,6 +19,8 @@ DATETIME=`date +"%Y-%m-%d_%Hh%M"`
 #	-> merge, plot frames, create gif, create mp4, etc
 # VER = 4
 #	-> run the script and plot first (z vs. t and k vs. t for Psi)
+# VER = 5
+# -> merge
 
 while getopts n:c:v: option
 do
@@ -130,8 +132,8 @@ fi
 
 ###############################################################################
 # merge snapshots
-#	if (VER = 0, 3)
-if [ $VER -eq 0 ] || [ $VER -eq 3 ]
+#	if (VER = 0, 3, 5)
+if [ $VER -eq 0 ] || [ $VER -eq 3 ] || [ $VER -eq 5 ]
 then
 	echo ''
 	echo '--Merging snapshots--'
