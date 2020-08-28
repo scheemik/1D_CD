@@ -5,7 +5,7 @@ Usage:
     merge.py <base_path> [--cleanup]
 
 Options:
-    --cleanup   Delete distributed files after merging
+    --cleanup   # Delete distributed files after merging [default: True]
 
 """
 
