@@ -105,7 +105,7 @@ def plot_BP(ax, BP, z, omega=None, z0_dis=None, zf_dis=None):
         ax.axvline(x=omega, color=my_clrs['omega'], linestyle='--', label=r'$\omega$')
         ax.legend()
 
-def plot_v_profiles(BP_array, bf_array, sp_array, z, omega=None, z0_dis=None, zf_dis=None, title_str='Forced 1D Wave'):
+def plot_v_profiles(BP_array, bf_array, sp_array, z, omega=None, z0_dis=None, zf_dis=None, title_str='Forced 1D Wave', filename='f_1D_windows.png'):
     # This dictionary makes each subplot have the desired ratios
     # The length of heights will be nrows and likewise len(widths)=ncols
     plot_ratios = {'height_ratios': [1],
@@ -126,11 +126,11 @@ def plot_v_profiles(BP_array, bf_array, sp_array, z, omega=None, z0_dis=None, zf
     axes[1].legend()
     #
     fig.suptitle(r'%s' %(title_str))
-    plt.savefig('f_1D_windows.png')
+    plt.savefig(filename)
 
 ###############################################################################
 
-def plot_z_vs_t(z, t_array, T, w_array, BP_array, k, m, omega, z0_dis=None, zf_dis=None, plot_full_domain=True, nT=0.0, c_map='RdBu_r', title_str='Forced 1D Wave'):
+def plot_z_vs_t(z, t_array, T, w_array, BP_array, k, m, omega, z0_dis=None, zf_dis=None, plot_full_domain=True, nT=0.0, c_map='RdBu_r', title_str='Forced 1D Wave', filename='f_1D_wave.png'):
     # Set aspect ratio of overall figure
     w, h = mpl.figure.figaspect(0.5)
     # This dictionary makes each subplot have the desired ratios
@@ -166,9 +166,9 @@ def plot_z_vs_t(z, t_array, T, w_array, BP_array, k, m, omega, z0_dis=None, zf_d
     param_formated_str = latex_exp(k)+', '+latex_exp(m)+', '+latex_exp(omega)
     fig.suptitle(r'%s, $(k,m,\omega)$=(%s)' %(title_str, param_formated_str))
     #plt.show()
-    plt.savefig('f_1D_wave.png')
+    plt.savefig(filename)
 
-def plot_A_vs_t(t_array, T, data_array, A, k, m, omega, nT=0.0, title_str='Forced 1D Wave'):
+def plot_A_vs_t(t_array, T, data_array, A, k, m, omega, nT=0.0, title_str='Forced 1D Wave', filename='f_1D_A_vs_t.png'):
     # Set aspect ratio of overall figure
     w, h = mpl.figure.figaspect(0.5)
     # This dictionary makes each subplot have the desired ratios
@@ -197,7 +197,7 @@ def plot_A_vs_t(t_array, T, data_array, A, k, m, omega, nT=0.0, title_str='Force
     param_formated_str = latex_exp(A)+', '+latex_exp(k)+', '+latex_exp(m)+', '+latex_exp(omega)
     fig.suptitle(r'%s, $(A,k,m,\omega)$=(%s)' %(title_str, param_formated_str))
     #plt.show()
-    plt.savefig('f_1D_A_vs_t.png')
+    plt.savefig(filename)
 
 def sort_k_coeffs(arr, nz):
     sorted_arr = np.zeros(nz-1)
@@ -205,7 +205,7 @@ def sort_k_coeffs(arr, nz):
     sorted_arr[(nz//2-1):(nz-1)] = arr[0:(nz//2)]
     return sorted_arr
 
-def plot_k_vs_t(ks, t_array, T, real_array, imag_array, k, m, omega, c_map='RdBu_r', title_str='Forced 1D Wave'):
+def plot_k_vs_t(ks, t_array, T, real_array, imag_array, k, m, omega, c_map='RdBu_r', title_str='Forced 1D Wave', filename='f_1D_wave_spectra.png'):
     # Set aspect ratio of overall figure
     w, h = mpl.figure.figaspect(0.5)
     # This dictionary makes each subplot have the desired ratios
@@ -239,7 +239,7 @@ def plot_k_vs_t(ks, t_array, T, real_array, imag_array, k, m, omega, c_map='RdBu
     axes[1].set_ylim([wiggle_room*k, -wiggle_room*k])
     param_formated_str = latex_exp(k)+', '+latex_exp(m)+', '+latex_exp(omega)
     fig.suptitle(r'%s, $(k,m,\omega)$=(%s)' %(title_str, param_formated_str))
-    plt.savefig('f_1D_wave_spectra.png')
+    plt.savefig(filename)
 
 ###############################################################################
 
