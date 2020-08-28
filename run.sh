@@ -63,6 +63,8 @@ switch_file="switchboard"
 snapshot_path="snapshots"
 # Name of merging file
 merge_file="merge.py"
+# Clean up the snapshots after merging
+cleanup_snapshots="True"
 # Name of first plotting file
 plot_first="plot_first.py"
 # Path to array files
@@ -152,7 +154,7 @@ then
 		echo "Snapshots already merged"
 	else
 		echo "Merging snapshots"
-		${mpiexec_command} -n $CORES python3 $merge_file $snapshot_path
+		${mpiexec_command} -n $CORES python3 $merge_file $snapshot_path --cleanup=$cleanup_snapshots
 	fi
     echo 'Done merging snapshots'
 
