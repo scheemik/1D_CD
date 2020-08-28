@@ -33,60 +33,28 @@ T = sbp.T
 omega = sbp.omega
 skip_nT = 0
 
-# Parameters for background profile
-# n_steps = sbp.n_steps
-# z0_dis  = sbp.z0_dis
-# zf_dis  = sbp.zf_dis
-# step_th = sbp.step_th
-
 ###############################################################################
 # Helper functions
 
 ###############################################################################
-for task in tasks:
-    for filename in h5_files:
-        with h5py.File(filename, mode='r') as f:
-            psi = f['tasks']['psi']
-            psi_array = np.transpose(np.array(psi[()]))
-            psi_real = psi_array.real
-            print(psi_array.shape)
-            t = np.array(f['scales']['sim_time'])
-            print(t.shape)
-            z = np.array(f['scales']['z']['1.0'])
-            print(z.shape)
-            fig = plt.figure(figsize=(10,10))
-            # plt.imshow(psi_real)
-            xmesh, ymesh = quad_mesh(x=t/T, y=z)
-            plt.pcolormesh(xmesh, ymesh, psi_real)
-            plt.show()
+def get_h5_data(tasks, h5_files):
+    for task in tasks:
+        for filename in h5_files:
+            with h5py.File(filename, mode='r') as f:
+                # The [()] syntax returns all data from an h5 object
+                psi = f['tasks'][task]
+                # Need to transpose into the correct orientation
+                #   Also need to convert to np.array for plotting function
+                psi_array = np.transpose(np.array(psi[()]))
+                # Just plotting the real part for now
+                psi_real = psi_array.real
+                t = np.array(f['scales']['sim_time'])
+                z = np.array(f['scales']['z']['1.0'])
+    return t, z, psi_real
 
-# dsets will be an array containing all the data
-#   it will have a size of: tasks x timesteps x 2 x nx x nz (5D)
-# dsets = []
-# for task in tasks:
-#     task_tseries = []
-#     for filename in h5_files:
-#         with h5py.File(filename, mode='r') as f:
-#             dset = f['tasks'][task]
-#             # Check dimensionality of data
-#             if len(dset.shape) != 2:
-#                 raise ValueError("This only works for 2D datasets")
-#             # The [()] syntax returns all data from an h5 object
-#             task_grid = np.array(dset[()])
-#             z_scale = f['scales']['z']['1.0']
-#             z_axis = np.array(z_scale[()])
-#             t_scale = f['scales']['sim_time']
-#             t_axis = np.array(t_scale[()])
-#             for i in range(len(t_axis)):
-#                 # Skip any times before specified number of T's
-#                 if(t_axis[i] > skip_nT*T):
-#                     time_slice = [t_axis[i], np.transpose(task_grid[i])]
-#                     task_tseries.append(time_slice)
-#     dsets.append(task_tseries)
+t_array, z_array, data = get_h5_data(tasks, h5_files)
 
-# BP_array = hf.BP_n_steps(sbp.n_steps, sbp.z, sbp.z0_dis, sbp.zf_dis, sbp.step_th)
-#
-# print('dset is',dsets[0][0][1])
+BP_array = hf.BP_n_steps(sbp.n_steps, sbp.z, sbp.z0_dis, sbp.zf_dis, sbp.step_th)
 
-# if sbp.plot_spacetime:
-#     hf.plot_z_vs_t(z, arrays['t_array'], T, arrays['psi_g_array'], arrays['BP_array'], k, m, omega, sbp.z0_dis, sbp.zf_dis, plot_full_domain=sbp.plot_full_domain, nT=sbp.nT, title_str=run_name)
+if sbp.plot_spacetime:
+    hf.plot_z_vs_t(z_array, t_array, T, data, BP_array, sbp.k, sbp.m, sbp.omega, sbp.z0_dis, sbp.zf_dis, plot_full_domain=sbp.plot_full_domain, nT=sbp.nT)
