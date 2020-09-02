@@ -48,15 +48,25 @@ def find_nearest_index(array, value, tolerance):
     else:
         return idx-1
 
-def measure_T(data, z, z_I, z_T, T_skip=None):
+def measure_T(data, z, z_I, z_T, tol, T_skip=None):
     """
-    data        array of the psi wavefield
+    data        array of the psi wavefield, complex valued
     z           array of z values
     z_I         depth at which to measure incident wave
     z_T         depth at which to measure transmitted wave
     T_skip      oscillation periods to skip before measuring
     """
-    # Need to find the indicies of the z's closest to z_I and z_T
+    # Find the indicies of the z's closest to z_I and z_T
+    idx_I = find_nearest_index(z, z_I, tol)
+    idx_T = find_nearest_index(z, z_T, tol)
+    # Pull relevant depths from the data, take absolute value
+    arr_I = data[:][idx_I]
+    arr_T = data[:][idx_T]
+    # Multiply element wise by the complex conjugate, find maximum
+    I_ = max(arr_I * np.conj(arr_I))
+    T_ = max(arr_T * np.conj(arr_T))
+    # Return the ratio, the Transmission Coefficient
+    return T_ / I_
 
 
 ###############################################################################

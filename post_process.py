@@ -131,6 +131,9 @@ else:
 
 BP_array = hf.BP_n_steps(sbp.n_steps, sbp.z, z0_dis, zf_dis, sbp.step_th)
 
+big_T = hf.measure_T(data, z, -0.25, -0.75, dz)
+print("Transmission coefficient is:", big_T)
+
 if sbp.plot_spacetime:
     hf.plot_z_vs_t(z, t, T, data, BP_array, k, m, omega, z0_dis, zf_dis, plot_full_domain=plot_f_d, nT=nT)
 
