@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # Switches
 plot_profiles = False
 run_sim = True
-separate_up_down = True
+separate_up_down = False
 
 ###############################################################################
 # Run parameters
@@ -84,6 +84,7 @@ dz     = Lz / nz                # [m] spacing between each grid point
 z_basis = de.Fourier('z', nz, interval=(z0, zf), dealias=dealias)
 domain  = de.Domain([z_basis], grid_dtype=np.complex128)
 z = domain.grid(0)
+kz = domain.elements(0)
 
 # Define problem
 problem = de.IVP(domain, variables=['psi', 'foo'])
@@ -182,6 +183,50 @@ if plot_profiles:
 if run_sim == False:
     raise SystemExit(0)
 ###############################################################################
+###############################################################################
+# Filtering by sign of wavenumber for complex demodulation
+# Filter = domain.new_field()
+# Filter['c'][kz>-1] = 1
+# def filter_field(field1):
+#     return field.data*Filter
+# def filter_operator(field1):
+#     return de.operators.GeneralFunction(field1.domain, layout='c', func=filter_field, args=(field1,))
+# de.operators.parseables['gen_filter'] = filter_operator
+# snapshots.add_task("gen_filter(psi)", layout='g', name='psi_filtered')
+
+def filter_field(field):
+    frac=0.5
+    dom = field.domain
+    local_slice = dom.dist.coeff_layout.slices(scales=dom.dealias)
+    coeff = []
+    for i in range(dom.dim)[::-1]:
+        coeff.append(np.linspace(0,1,dom.global_coeff_shape[i],endpoint=False))
+    cc = np.meshgrid(*coeff)
+
+    field_filter = np.zeros(dom.local_coeff_shape,dtype='bool')
+    for i in range(dom.dim):
+        field_filter = field_filter | (cc[i][local_slice] > frac)
+    field['c'][field_filter] = 0j
+
+from scipy import special
+def filter_func(field):
+    # Call scipy erf function on the field's data
+    return special.erf(field.data)
+
+def filter_operator(field):
+    # Return GeneralFunction instance that applies erf_func in grid space
+    return de.operators.GeneralFunction(
+        field.domain,
+        layout = 'c',
+        func = filter_field,
+        args = (field,)
+    )
+
+de.operators.parseables['k_filter'] = filter_operator
+
+###############################################################################
+
+
 # Define equations
 problem.add_equation("dt( dz(dz(foo)) - (k**2)*foo ) " \
                      " - NU*(dz(dz(dz(dz(psi)))) + (k**4)*psi) " \
@@ -204,6 +249,8 @@ solver.stop_iteration = np.inf              # [] number of iterations before the
 # Initial conditions
 psi = solver.state['psi']
 psi['g'] = 0.0
+# psi_filtered = solver.state['psi_filtered']
+# psi_filtered['g'] = 0.0
 
 ###############################################################################
 # Analysis
@@ -214,6 +261,10 @@ def add_new_file_handler(snapshot_directory='snapshots', sdt=0.25):
 snapshots = add_new_file_handler('snapshots')
 snapshots.add_system(solver.state)
 
+
+
+snapshots.add_task("k_filter(psi)", layout='c', name='psi_filtered2')
+
 ###############################################################################
 # Logger parameters
 endtime_str      = 'Sim end period: %f'
@@ -222,10 +273,13 @@ adapt_dt         = False
 logger_cadence   = 100
 iteration_str    = 'Iteration: %i, t/T: %e, dt/T: %e'
 flow_log_message = 'Max linear criterion = {0:f}'
+
 ###############################################################################
 # Store data for final plot
 psi.set_scales(1)
 psi_gs = [np.copy(psi['g']).real] # Plotting functions require float64, not complex128
+# psi_filtered.set_scales(1)
+# psi_filtered_gs = [np.copy(psi_filtered['g']).real] # Plotting functions require float64, not complex128
 t_list = [solver.sim_time]
 ###############################################################################
 # Main loop
@@ -240,6 +294,8 @@ try:
         if solver.iteration % 1 == 0:
             psi.set_scales(1)
             psi_gs.append(np.copy(psi['g']).real)
+            # psi_filtered.set_scales(1)
+            # psi_filtered_gs.append(np.copy(psi_filtered['g']).real)
             t_list.append(solver.sim_time)
         if solver.iteration % logger_cadence == 0:
             logger.info(iteration_str %(solver.iteration, solver.sim_time/time_factor, dt/time_factor))
@@ -256,6 +312,7 @@ finally:
 ###############################################################################
 # Create space-time plot
 psi_g_array = np.transpose(np.array(psi_gs))
+# psi_fg_array = np.transpose(np.array(psi_filtered_gs))
 t_array = np.array(t_list)
 
 def plot_z_vs_t(z, t_array, T, w_array, bp_array=None, bf_array=None, sp_array=None, z0_dis=None, zf_dis=None, c_map='RdBu_r', title_str='1D forced wave', filename='stand_alone_wave.png'):
@@ -347,9 +404,9 @@ def FT_in_space(t, z, data, dz):
 ###############################################################################
 # Separating up and down through complex demodulation (see Mercier et al. 2008)
 
-## Step 2
-ift_z_y_p, ift_z_y_n = FT_in_space(t_array, z, psi_g_array, dz)
 ## Step 1
+ift_z_y_p, ift_z_y_n = FT_in_space(t_array, z, psi_g_array, dz)
+## Step 2
 up_f = FT_in_time(t_array, z, ift_z_y_p, dt)
 dn_f = FT_in_time(t_array, z, ift_z_y_n, dt)
 # Get up and down fields as F = |mag_f| * exp(i*phi_f)
