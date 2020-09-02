@@ -13,6 +13,53 @@ from matplotlib import ticker
 from dedalus.extras.plot_tools import quad_mesh, pad_limits
 
 ###############################################################################
+# Measuring the Transmission Coefficient
+
+def find_nearest_index(array, value, tolerance):
+    """
+    Assumes array is sorted
+    array       a 1 D array of values
+    value       the given value in question
+    tolerance   how big a difference is allowed between values
+    """
+    # Use a bisection search function from numpy
+    idx = np.searchsorted(array, value, side="left")
+    # Check if the found index is one of the endpoints
+    if idx == 0:
+        # Find difference between given and found values
+        diff = np.abs(value - array[0])
+        # If the difference > tolerance, return None
+        if diff > tolerance:
+            return None
+        else:
+            return idx
+    elif idx == len(array):
+        # Find difference between given and found values
+        diff = np.abs(value - array[idx-1])
+        # If the difference > tolerance, return None
+        if diff > tolerance:
+            return None
+        else:
+            return idx-1
+    # If closer to the right index, return index
+    elif np.abs(value - array[idx]) < np.abs(value - array[idx-1]):
+        return idx
+    # If closer to the left index, return index-1
+    else:
+        return idx-1
+
+def measure_T(data, z, z_I, z_T, T_skip=None):
+    """
+    data        array of the psi wavefield
+    z           array of z values
+    z_I         depth at which to measure incident wave
+    z_T         depth at which to measure transmitted wave
+    T_skip      oscillation periods to skip before measuring
+    """
+    # Need to find the indicies of the z's closest to z_I and z_T
+
+
+###############################################################################
 # Takes an exponential number and returns a string formatted nicely for latex
 #   Expects numbers in the format 7.0E+2
 def latex_exp(num, pos=None):
