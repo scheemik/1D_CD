@@ -117,6 +117,9 @@ z = domain.grid(0)
 # Getting wavenumbers
 ks = z_basis.wavenumbers
 
+###############################################################################
+# Profiles for simulation
+
 # Background profile in N_0
 n_steps = 1
 step_th = 1.0/m
@@ -135,6 +138,14 @@ if use_sponge == True:
     win_sp_array = np.exp(-4*np.log(2)*((z - c_sp)/b_sp)**2)     # Gaussian
 else:
     win_sp_array = z * 0.0      # No sponge
+
+###############################################################################
+# Measuring the Transmission Coefficient
+
+# Parameters
+z_I             = 0.125         # [m] depth at which incident wave is measured
+z_T             = 32*dt         # [m] depth at which transmitted wave is measured
+T_skip          = 3             # []  number of oscillation periods to skip before measuring
 
 ###############################################################################
 # Run parameters
